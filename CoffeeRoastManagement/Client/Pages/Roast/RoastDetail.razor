@@ -1,0 +1,173 @@
+﻿@page "/roast/detail/{roastid:int}"
+@inject HttpClient http
+@inject MudBlazor.ISnackbar snackbar
+@using Newtonsoft.Json
+@using ChartJs.Blazor.LineChart
+@using ChartJs.Blazor.Common.Time
+@using System.Collections.Generic 
+ 
+@if (roast != null)
+{
+    <h3>Roast @roast.Name</h3>
+    <MudLink Href="/roast">Back to roasts</MudLink>
+
+<MudContainer Class="mt-16 px-8" MaxWidth="MaxWidth.False">
+    <MudGrid>
+        <MudItem xs="12" sm="6" md="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudText>Roast information:</MudText>
+                <MudText>Short Info: @roast.ShortInfo</MudText>
+                <MudText>Date: @roast.Date</MudText>
+                <MudText>Notes: @roast.Note</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="6" md="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 200px;">
+                <MudText>Bean information:</MudText>
+                @foreach (var b in roast.Beans)
+                {
+                    <MudText>@b.StockItem.GreenBeanInfo.Name: @b.Amount kg</MudText>
+                }
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="6">
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 400px;">
+                <Chart Config="_config" @ref="_chart"></Chart>
+            </MudPaper>
+        </MudItem>
+
+        <MudItem>
+            <MudPaper Elevation="2" Class="pa-4" Style="height: 400px;">
+                <MudText>Artisan information</MudText>
+                <MudText>Artisan version: @artisan.Title</MudText>
+                <MudText>Roaster type: @artisan.RoasterType</MudText>
+                <MudText>Date: @DateTimeOffset.FromUnixTimeSeconds(artisan.Epoch).DateTime</MudText>
+                <MudText>Artisan version: @artisan.Version</MudText>
+            </MudPaper>
+        </MudItem>
+        <MudItem xs="12" sm="12" md="4">
+            <MudCardMedia Image="@roast.Photo" />
+        </MudItem>
+    </MudGrid>
+</MudContainer>
+
+}
+else
+{
+    <p>Loading</p>
+}
+
+@code { 
+    [Parameter]
+    public int roastid { get; set; }
+    private Roast roast { get; set; }
+    private ArtisanFile artisan { get; set; }
+
+    // roast temperature chart
+    private LineConfig _config;
+    private Chart _chart;
+    private LineDataset<double> temp1;
+    private LineDataset<double> temp2;
+
+    // flavorwheel chart
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        Console.WriteLine($"loading roastid {roastid} ...");
+
+        roast = await http.GetFromJsonAsync<Roast>($"api/roast/{roastid}");
+        Console.WriteLine($"finished loading roastid {roastid}.");
+        if (roast.RoastProfile != null)
+        {
+            artisan = JsonConvert.DeserializeObject<ArtisanFile>(roast.RoastProfile);
+            PrepareData();
+            DrawChart();
+
+        }
+    }
+
+
+    private void DrawChart()
+    {
+        _config = new LineConfig
+        {
+            Options = new LineOptions
+            {
+                Responsive = true,
+                Title = new OptionsTitle
+                {
+                    Display = true,
+                    Text = "Roast Profile"
+                },
+                Tooltips = new Tooltips
+                {
+                    Mode = InteractionMode.Nearest,
+                    Intersect = true
+                },
+                Hover = new Hover
+                {
+                    Mode = InteractionMode.Nearest,
+                    Intersect = true
+                },
+                Scales = new Scales
+                {
+                    XAxes = new List<CartesianAxis>
+                    {
+                        new CategoryAxis {
+                            ScaleLabel = new ScaleLabel
+                            {
+                                LabelString = "Time"
+                            },
+                        }
+
+                    },
+                    YAxes = new List<CartesianAxis>
+                    {
+                        new LinearCartesianAxis
+                        {
+                            ScaleLabel = new ScaleLabel
+                            {
+                                LabelString = "Temperature"
+                            }
+                        }
+                    }
+                }
+            }
+
+        };
+
+        Console.WriteLine("Adding labels");
+        artisan.TimeX.ForEach(x => _config.Data.Labels.Add(FormatAsMinuteSecond((int)Math.Round(x))));
+        Console.WriteLine("Adding data set");
+        _config.Data.Datasets.Add(temp1);
+        _config.Data.Datasets.Add(temp2);
+        Console.WriteLine("Finished creating graph.");
+    }
+
+    private string FormatAsMinuteSecond(int value)
+    {
+        var min = value / 60;
+        var sec = value % 60;
+        return $"{min.ToString("D2")}:{sec.ToString("D2")}";
+    }
+    private void PrepareData()
+    {
+        temp1 = new LineDataset<double>(artisan.Temp1)
+        {
+            Label = "Environment temp.",
+            BackgroundColor = ColorUtil.ColorHexString(255, 99, 132),
+            BorderColor = ColorUtil.ColorHexString(255, 99, 132),
+            Fill = FillingMode.Disabled,
+        };
+
+        temp2 = new LineDataset<double>(artisan.Temp2)
+        {
+            Label = "Bean temp.",
+            BackgroundColor = ColorUtil.ColorHexString(0, 0, 255),
+            BorderColor = ColorUtil.ColorHexString(0, 0, 255),
+            Fill = FillingMode.Disabled,
+        };
+        Console.WriteLine($"Dataset size: {temp1.Data.Count}");
+    }
+}

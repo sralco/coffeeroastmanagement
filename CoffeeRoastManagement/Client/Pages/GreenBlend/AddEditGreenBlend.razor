@@ -1,0 +1,121 @@
+﻿@page "/greenblend"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+@inject MudBlazor.ISnackbar snackbar
+
+<h3>Green blend</h3>
+<GreenBlendCreator AvailableBeans="@stocks" CurrentSelection="@CurrentBeanSelection" SelectedBeans="@greenblends"></GreenBlendCreator>
+
+<p>old content</p>
+
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Green Blend</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudSelect Label="Stock item" @bind-Value="stockId">
+            @foreach (Stock st in stocks)
+            {
+                <MudSelectItem T="int?" Value="@st.Id">@(st.GreenBeanInfo.Name + ", " + st.SellerContact.Name)</MudSelectItem>
+            }
+        </MudSelect>
+        <MudTextField @bind-Value="greenblend.Amount" Label="Amount" Variant="Variant.Text" InputType="InputType.Number" Margin="Margin.Normal"></MudTextField>
+        <br />
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save Green Blend</MudButton>
+    </MudCardContent>
+</MudCard>
+<br />
+
+<MudTable Elevation="25" Items="greenblends" Filter="new Func<GreenBlend, bool>(Search)" @bind-contact="greenblend">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Green Blends</MudText>
+        <MudToolBarSpacer />
+        <MudTextField @bind-Value="searchString" Placeholder="Search for Green Blend..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Green Bean</MudTh>
+        <MudTh>Contact</MudTh>
+        <MudTh>Amount</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="string">@context.StockItem.GreenBeanInfo.Name</MudTd>
+        <MudTd DataLabel="string">@context.StockItem.SellerContact.Name</MudTd>
+        <MudTd DataLabel="Amount">@context.Amount</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private string searchString = "";
+    private GreenBlend greenblend = new GreenBlend();
+    private List<GreenBlend> greenblends = new List<GreenBlend>();
+    private int? stockId { get; set; }
+
+    private Stock stock = new Stock();
+    private List<Stock> stocks = new List<Stock>();
+
+    private async void GetGreenBlends()
+    {
+        var c = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
+        greenblends.Clear();
+        greenblends.AddRange(c);
+        StateHasChanged();
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var c = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
+        greenblends.Clear();
+        greenblends.AddRange(c);
+
+        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        stocks.Clear();
+        stocks.AddRange(s);
+    }
+
+    private bool Search(GreenBlend greenblend)
+    {
+        return true;
+    }
+
+    private async void Save()
+    {
+        greenblend.StockItem = stocks.FirstOrDefault(x => x.Id == stockId);
+        if (greenblend.Id == 0)
+        {
+            await http.PostAsJsonAsync("api/greenblend", greenblend);
+            snackbar.Add("Green blend saved.", Severity.Success);
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/greenblend", greenblend);
+            snackbar.Add("Green blend updated.", Severity.Success);
+
+        }
+        GetGreenBlends();
+    }
+
+    private async void Edit(int id)
+    {
+        greenblend = await http.GetFromJsonAsync<GreenBlend>($"api/greenblend/{id}");
+    }
+
+    private async void Delete(int id)
+    {
+        await http.DeleteAsync($"api/greenblend/{id}");
+        snackbar.Add("Green blend deleted.", Severity.Success);
+        GetGreenBlends();
+    }
+
+    public void CurrentBeanSelection(List<GreenBlend> blends)
+    {
+        greenblends = blends;
+        Console.WriteLine("AddEditGreenBlend.CurrentBeanSelection");
+    }
+}

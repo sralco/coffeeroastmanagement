@@ -1,0 +1,35 @@
+﻿<!-- Selection drop down for given beans -->
+
+@if (GreenBeanInfos != null)
+{
+    <MudSelect T="GreenBeanInfo" Label="Green Bean" @bind-Value="@SelectedGreenBean" SelectedValuesChanged="@(() => SelectionChangeCallback())" ToStringFunc="@converter">
+        <MudSelectItem Value="@emptyBean">New entry</MudSelectItem>
+        @foreach (var gb in GreenBeanInfos)
+        {
+            <MudSelectItem Value="@gb"/>
+        }
+    
+    </MudSelect>
+}
+
+@code { 
+    [Parameter]
+    public List<GreenBeanInfo> GreenBeanInfos { get; set; }
+
+    [Parameter]
+    public GreenBeanInfo SelectedGreenBean { get; set; }
+
+    [Parameter]
+    public EventCallback<GreenBeanInfo> OnClickCallback { get; set; }
+
+    // represents an empty bean
+    private GreenBeanInfo emptyBean = new GreenBeanInfo();
+
+    private void SelectionChangeCallback()
+    {
+        Console.Write("GreenBeanSelector.SelectionChangeCallback");
+        OnClickCallback.InvokeAsync(SelectedGreenBean);
+    }
+
+    Func<GreenBeanInfo, string> converter = gb => (gb?.Id != 0) ? gb.Name : "New entry";
+}

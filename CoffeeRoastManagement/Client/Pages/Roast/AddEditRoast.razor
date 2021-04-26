@@ -1,0 +1,295 @@
+﻿@page "/roast"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+@inject MudBlazor.ISnackbar snackbar
+@using System.IO
+@using CoffeeRoastManagement.Client.Pages.GreenBlend
+
+<h3>Roast Management</h3>
+
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+
+@if (showInputDialog)
+{
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h6">Add / Edit Roast</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <MudTextField @bind-Value="roast.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="roast.ShortInfo" Label="ShortInfo" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudText>Green bean for roast</MudText>
+        <GreenBlendCreator AvailableBeans="@stocks" CurrentSelection="@CurrentBeanSelection" SelectedBeans="@greenblends"></GreenBlendCreator>
+        <MudTextField @bind-Value="Date" Label="Date" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="Time" Label="Time" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField @bind-Value="roast.Equipment" Label="Equipment" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <!-- Cupping info selection -->
+        @*<MudSelect Label="Cupping" @bind-Value="cuppingId">
+                @foreach (Cupping c in cuppings)
+                {
+                    <MudSelectItem T="int?" Value="@c.Id">@(c.Date + ", " + c.Note)</MudSelectItem>
+                }
+            </MudSelect>*@
+        <MudTextField @bind-Value="roast.Note" Label="Notes" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+
+
+        <InputFile id="fileInput112" OnChange="UploadProfile" hidden/>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Filled.CloudUpload"
+                   for="fileInput112">
+            Upload Artisan roast profile
+        </MudButton>
+        <br />
+
+        <InputFile id="fileInputPhoto" OnChange="UploadPhoto" hidden/>
+        <MudButton HtmlTag="label"
+                   Variant="Variant.Filled"
+                   Color="Color.Primary"
+                   StartIcon="@Icons.Filled.CloudUpload"
+                   for="fileInputPhoto">
+            Upload photo
+        </MudButton>
+
+        <br/>
+        <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save Roast</MudButton>
+    </MudCardContent>
+</MudCard>
+    <br/>
+}
+
+@*<MudTable Elevation="25" Items="roasts" Filter="new Func<Roast, bool>(Search)" @bind-contact="roast">*@
+<MudTable Elevation="25" Items="roasts" @bind-contact="roast">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Roasts</MudText>
+        @*<MudToolBarSpacer />
+            <MudTextField @bind-Value="searchString" Placeholder="Search for Roasts..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>*@
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Date</MudTh>
+        <MudTh>Notes</MudTh>
+        <!-- <MudTh>RoastProfile</MudTh> -->
+    </HeaderContent>
+    <RowTemplate>
+        @*<MudTd DataLabel="Name"><MudLink Href="roast/detail/{context.Id}" Underline="Underline.Always">@context.Name</MudLink></MudTd>*@
+        <MudTd DataLabel="Name">@context.Name</MudTd>
+        <MudTd DataLabel="Date">@context.Date</MudTd>
+        <MudTd DataLabel="Note">@context.Note</MudTd>
+        <!-- <MudTh DataLabel="RoastProfile">@context.RoastProfile</MudTh> -->
+        <MudTd DataLabel="">
+            @*<MudButton @onclick="@(() => Details(@context.Id))">Details</MudButton>*@
+            <MudFab @onclick="@(() => Details(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.ZoomIn" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+
+@code {
+    private bool showInputDialog { get; set; } = false;
+    private bool edit = false;
+
+    //private string searchString = "";
+    private Roast roast = new Roast();
+    private List<Roast> roasts = new List<Roast>();
+
+    private List<Stock> stocks = new List<Stock>();
+
+    private List<GreenBlend> greenblends = new List<GreenBlend>();
+
+    private DateTime? Date { get; set; }
+    private TimeSpan? Time { get; set; }
+
+    private string GenerateLink(int id)
+    {
+        return $"roast/detail/{id}";
+    }
+
+    private async void GetRoasts()
+    {
+        var r = await http.GetFromJsonAsync<Roast[]>("api/roast");
+        roasts.Clear();
+        roasts.AddRange(r);
+
+        StateHasChanged();
+    }
+
+    private async void GetStocks()
+    {
+        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        stocks.Clear();
+        stocks.AddRange(s);
+        StateHasChanged();
+    }
+
+    protected override void OnInitialized()
+    {
+        GetRoasts();
+        GetStocks();
+
+        ResetRoast();
+
+        //var g = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
+        //greenblends.Clear();
+        //greenblends.AddRange(g);
+
+        //var c = await http.GetFromJsonAsync<Cupping[]>("api/cupping");
+        //cuppings.Clear();
+        //cuppings.AddRange(c);
+    }
+
+    //private bool Search(Roast roast)
+    //{
+    //    if (string.IsNullOrWhiteSpace(searchString)) return true;
+    //    if (roast.Note.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+    //    {
+    //        return true;
+    //    }
+    //    return false;
+    //}
+
+    private async Task SaveOrUpdateGreenBlend()
+    {
+
+        foreach (var gb in greenblends)
+        {
+            gb.StockItem = stocks.FirstOrDefault(x => x.Id == gb.StockItem.Id);
+            if (gb.Id == 0)
+            {
+                await http.PostAsJsonAsync("api/greenblend", gb);
+                snackbar.Add("Green blend saved.", Severity.Success);
+            }
+            else
+            {
+                await http.PutAsJsonAsync("api/greenblend", gb);
+                snackbar.Add("Green blend updated.", Severity.Success);
+
+            }
+        }
+        var g = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
+        greenblends.Clear();
+        greenblends.AddRange(g);
+    }
+
+    private async void Save()
+    {
+
+        // first save or update green blend
+        if (Date != null && Time != null)
+        {
+            roast.Date = Date.HasValue ? Date.Value.Date : DateTime.MinValue;
+            roast.Date += Time.HasValue ? Time.Value : TimeSpan.Zero;
+        }
+        await SaveOrUpdateGreenBlend();
+        if (roast.Id == 0)
+        {
+            roast.Beans = new List<GreenBlend>();
+            roast.Beans.AddRange(greenblends);
+            await http.PostAsJsonAsync("api/roast", roast);
+            snackbar.Add("Roast saved.", Severity.Success);
+        }
+        else
+        {
+            roast.Beans = new List<GreenBlend>();
+            roast.Beans.AddRange(greenblends);
+            await http.PutAsJsonAsync("api/roast", roast);
+            snackbar.Add("Roast updated.", Severity.Success);
+
+        }
+        GetRoasts();
+        edit = false;
+        ResetRoast();
+        ToggleShowInputDialog();
+        StateHasChanged();
+    }
+
+    private void ResetRoast()
+    {
+        roast = new Roast();
+        var date = DateTime.Now;
+        roast.Date = new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
+        Date = roast.Date.Date;
+        Time = roast.Date.TimeOfDay;
+        greenblends.Clear();
+    }
+
+    private async void Edit(int id)
+    {
+        edit = true;
+        showInputDialog = true;
+
+        roast = await http.GetFromJsonAsync<Roast>($"api/roast/{id}");
+        greenblends = roast.Beans;
+        Date = roast.Date.Date;
+        Time = roast.Date.TimeOfDay;
+        StateHasChanged();
+    }
+
+    private async void Delete(int id)
+    {
+        edit = false;
+        showInputDialog = false;
+        ResetRoast();
+
+        await http.DeleteAsync($"api/roast/{id}");
+        snackbar.Add("Roast deleted.", Severity.Success);
+        GetRoasts();
+        StateHasChanged();
+    }
+
+    private async void UploadProfile(InputFileChangeEventArgs e)
+    {
+        //var entries = e.GetMultipleFiles();
+        IBrowserFile file = e.File;
+        //Do your validations here
+        snackbar.Add($"Uploading {file.Name}.");
+        using var reader =
+              new StreamReader(file.OpenReadStream(1024 * 1024 * 1024));
+
+        roast.RoastProfile = await reader.ReadToEndAsync();
+
+        StateHasChanged();
+    }
+
+    private async void UploadPhoto(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+        snackbar.Add($"Uploading {file.Name}.");
+        var buffers = new byte[file.Size];
+        await file.OpenReadStream().ReadAsync(buffers);
+        roast.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffers)}";
+    }
+
+    private void Details(int id)
+    {
+        uriHelper.NavigateTo($"roast/detail/{id}");
+    }
+
+    public void CurrentBeanSelection(List<GreenBlend> blends)
+    {
+        greenblends = blends;
+        roast.Beans.Clear();
+        foreach (var b in greenblends)
+        {
+            roast.Beans.Add(b);
+        }
+    }
+
+    private void ToggleShowInputDialog()
+    {
+        if (edit && showInputDialog)
+        {
+            edit = false;
+            ResetRoast();
+            return;
+        }
+        showInputDialog = !showInputDialog;
+    }
+
+}

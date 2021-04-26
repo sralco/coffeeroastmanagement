@@ -1,0 +1,43 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.31129.286
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeRoastManagement.Server", "CoffeeRoastManagement\Server\CoffeeRoastManagement.Server.csproj", "{EB79C7F7-1189-4BD1-A12C-5DEEB67ACC46}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeRoastManagement.Client", "CoffeeRoastManagement\Client\CoffeeRoastManagement.Client.csproj", "{035ECB52-AC32-41F3-B022-80D4BDD7D054}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "CoffeeRoastManagement.Shared", "CoffeeRoastManagement\Shared\CoffeeRoastManagement.Shared.csproj", "{7466D6CB-B53A-4A99-B04B-6326017D6A0C}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{EFDF3F8E-0A04-4DEE-BD6A-045B6205A7A0}"
+	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
+		build.cake = build.cake
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{EB79C7F7-1189-4BD1-A12C-5DEEB67ACC46}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EB79C7F7-1189-4BD1-A12C-5DEEB67ACC46}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EB79C7F7-1189-4BD1-A12C-5DEEB67ACC46}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EB79C7F7-1189-4BD1-A12C-5DEEB67ACC46}.Release|Any CPU.Build.0 = Release|Any CPU
+		{035ECB52-AC32-41F3-B022-80D4BDD7D054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{035ECB52-AC32-41F3-B022-80D4BDD7D054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{035ECB52-AC32-41F3-B022-80D4BDD7D054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{035ECB52-AC32-41F3-B022-80D4BDD7D054}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7466D6CB-B53A-4A99-B04B-6326017D6A0C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7466D6CB-B53A-4A99-B04B-6326017D6A0C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7466D6CB-B53A-4A99-B04B-6326017D6A0C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7466D6CB-B53A-4A99-B04B-6326017D6A0C}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {5E7048AA-2AF6-4523-ACAC-EFEC9586FC98}
+	EndGlobalSection
+EndGlobal

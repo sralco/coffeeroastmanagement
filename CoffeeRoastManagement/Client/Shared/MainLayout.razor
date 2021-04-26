@@ -1,0 +1,40 @@
+﻿@using System.Reflection
+@inherits LayoutComponentBase
+
+
+
+<MudThemeProvider />
+
+<MudLayout>
+    <MudAppBar Elevation="1">
+        <MudIconButton Icon="@Icons.Material.Filled.Menu" Color="Color.Inherit" Edge="Edge.Start" OnClick="@((e) => DrawerToggle())" />
+        <MudText Typo="Typo.h5" Class="ml-3">Coffee Roast Management</MudText>
+        <MudAppBarSpacer />
+
+        <MudText Typo="Typo.body1" Class="ml-3">Version @version.ToString() <br/> Copyright 2021</MudText>
+
+    </MudAppBar>
+    <MudDrawer @bind-Open="_drawerOpen" ClipMode="DrawerClipMode.Always" Elevation="2">
+        <MudNavMenu>
+            <MudNavLink Href="/" Match="NavLinkMatch.All" Icon="@Icons.Filled.Home">Home</MudNavLink>
+            <MudNavLink Href="contact" Icon="@Icons.Filled.People">Contact</MudNavLink>
+            <MudNavLink Href="stock" Icon="@Icons.Filled.Shop">Stock</MudNavLink>
+            <MudNavLink Href="roast" Icon="@Icons.Filled.WbCloudy">Roast</MudNavLink>
+        </MudNavMenu>
+    </MudDrawer>
+    <MudMainContent>
+        @Body
+    </MudMainContent>
+</MudLayout>
+
+@code {
+    bool _drawerOpen = true;
+
+    //Version version = Assembly.GetExecutingAssembly().GetName().Version;
+    string version = ((AssemblyInformationalVersionAttribute)Assembly.GetExecutingAssembly().GetCustomAttributes(typeof(AssemblyInformationalVersionAttribute), false)[0]).InformationalVersion;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+}

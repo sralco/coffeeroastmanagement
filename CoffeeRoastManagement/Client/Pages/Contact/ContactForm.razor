@@ -1,0 +1,34 @@
+﻿<div>
+    <EditForm Model="@contact" OnValidSubmit="@OnValidSubmit">
+        <DataAnnotationsValidator />
+        <MudCard>
+            <MudCardContent>
+                <MudGrid>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField Label="Name" @bind-Value="contact.Name" For="@(() => contact.Name)" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField Label="Country" @bind-Value="contact.Country" For="@(() => contact.Country)" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField Label="Url" @bind-Value="contact.Url" For="@(() => contact.Url)" />
+                    </MudItem>
+                    <MudItem xs="12" sm="6" md="4">
+                        <MudTextField Label="Note" @bind-Value="contact.Note" For="@(() => contact.Note)" Lines="4" />
+                    </MudItem>
+                </MudGrid>
+            </MudCardContent>
+            <MudCardActions>
+                <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary" Class="col-1">@ButtonText</MudButton>
+                <!-- The reset should also reset the contact, i.e., create a new empty contact -->
+                <!-- <MudButton ButtonType="ButtonType.Reset" Variant="Variant.Filled" Color="Color.Secondary" Class="col-1">Reset</MudButton> -->
+            </MudCardActions>
+        </MudCard>
+    </EditForm>
+</div>
+
+@code {
+    [Parameter] public Contact contact { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Save";
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+}

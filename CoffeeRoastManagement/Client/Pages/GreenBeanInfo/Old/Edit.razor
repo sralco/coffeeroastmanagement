@@ -1,0 +1,23 @@
+﻿@page "/greenbeaninfo/edit/{greenbeaninfoId:int}"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+
+<h3>Edit Green Bean Information</h3>
+
+<Form ButtonText="Update" greenbeaninfo="greenbeaninfo" OnValidSubmit="@EditGreenBeanInformation" />
+
+@code {
+	[Parameter] public int greenbeaninfoId { get; set; }
+	GreenBeanInfo greenbeaninfo = new GreenBeanInfo();
+
+	protected async override Task OnParametersSetAsync() {
+		greenbeaninfo = await http.GetFromJsonAsync<GreenBeanInfo>($"api/greenbeaninfo/{greenbeaninfoId}");
+	}
+
+	async Task EditGreenBeanInformation() {
+		await http.PutAsJsonAsync("api/greenbeaninfo", greenbeaninfo);
+		//await js.InvokeVoidAsync("alert", $"Updated successfully!");
+		uriHelper.NavigateTo("greenbeaninfo");
+	}
+}

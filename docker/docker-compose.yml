@@ -1,0 +1,33 @@
+version: '3'
+
+services:
+  server:
+    image: mb221/coffeeroastmanagement:0.1.0
+    depends_on:
+      - postgres
+    ports:
+      - "5000:5000"
+    environment:
+      - CONNECTION_STRING=Host=postgres;Port=5432;Database=crm;Username=crm;Password=crm;
+  postgres:
+    image: postgres:13.2
+    ports:
+      - "5432:5432"
+    container_name: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pgconf:/etc/postgresql
+      - pglog:/var/log/postgresql
+    environment:
+      - POSTGRES_DB=crm
+      - POSTGRES_USER=crm
+      - POSTGRES_PASSWORD=crm
+
+volumes:
+  pgdata:
+    driver: local
+  pgconf:
+    driver: local
+  pglog:
+    driver: local
+

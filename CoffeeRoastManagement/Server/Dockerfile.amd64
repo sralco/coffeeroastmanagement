@@ -1,0 +1,23 @@
+# https://hub.docker.com/_/microsoft-dotnet
+#FROM mcr.microsoft.com/dotnet/sdk:5.0 AS build
+#WORKDIR /src
+
+# copy csproj and restore as distinct layers
+#COPY ["CoffeeRoastManagement/Server/CoffeeRoastManagement.Server.csproj", "CoffeeRoastManagement/Server/"]
+#COPY ["CoffeeRoastManagement/Shared/CoffeeRoastManagement.Shared.csproj", "CoffeeRoastManagement/Shared/"]
+#COPY ["CoffeeRoastManagement/Client/CoffeeRoastManagement.Client.csproj", "CoffeeRoastManagement/Client/"]
+#RUN dotnet restore "CoffeeRoastManagement/Server/CoffeeRoastManagement.Server.csproj" -r linux-arm
+
+#WORKDIR "/src/CoffeeRoastManagement/Server"
+
+#RUN dotnet build "CoffeeRoastManagement.Server.csproj" -c Release -o /app/build
+
+#RUN dotnet publish "CoffeeRoastManagement.Server.csproj" -c Release -o /app/publish -r linux-arm --self-contained false 
+
+##RUN dotnet publish -c release -o /app -r linux-arm --self-contained false --no-restore
+
+# final stage/image
+FROM mcr.microsoft.com/dotnet/aspnet:5.0-buster-slim-amd64
+WORKDIR /app
+COPY ./bin/Release/net5.0/publish .
+ENTRYPOINT ["dotnet", "CoffeeRoastManagement.Server.dll"]

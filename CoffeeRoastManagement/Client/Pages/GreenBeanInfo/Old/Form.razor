@@ -1,0 +1,44 @@
+﻿<EditForm Model="@greenbeaninfo" OnValidSubmit="@OnValidSubmit">
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <label>Name:</label>
+        <div>
+            <InputText @bind-Value="@greenbeaninfo.Name" />
+            <ValidationMessage For="@(() => greenbeaninfo.Name)" />
+        </div>
+		<label>Country:</label>
+		<div>
+			<InputText @bind-Value="@greenbeaninfo.Country" />
+			<ValidationMessage For="@(() => greenbeaninfo.Country)" />
+		</div>
+		<label>Origin:</label>
+		<div>
+			<InputText @bind-Value="@greenbeaninfo.Region" />
+			<ValidationMessage For="@(() => greenbeaninfo.Region)" />
+		</div>
+		<label>Farmer:</label>
+		<div>
+			<InputText @bind-Value="@greenbeaninfo.Farmer" />
+			<ValidationMessage For="@(() => greenbeaninfo.Farmer)" />
+		</div>
+		<label>Url:</label>
+		<div>
+			<InputText @bind-Value="@greenbeaninfo.Url" />
+			<ValidationMessage For="@(() => greenbeaninfo.Url)" />
+		</div>
+		<label>Note:</label>
+		<div>
+			<InputText @bind-Value="@greenbeaninfo.Note" />
+			<ValidationMessage For="@(() => greenbeaninfo.Note)" />
+		</div>
+	</div>
+    <button type="submit" class="btn btn-success">
+        @ButtonText
+    </button>
+</EditForm>
+
+@code {
+    [Parameter] public GreenBeanInfo greenbeaninfo { get; set; }
+    [Parameter] public string ButtonText { get; set; } = "Save";
+    [Parameter] public EventCallback OnValidSubmit { get; set; }
+}

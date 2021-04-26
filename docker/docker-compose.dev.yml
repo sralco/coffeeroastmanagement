@@ -1,0 +1,25 @@
+version: '3'
+
+services:
+  postgres:
+    image: postgres:13.2
+    ports:
+      - "5432:5432"
+    container_name: postgres
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - pgconf:/etc/postgresql
+      - pglog:/var/log/postgresql
+    environment:
+      - POSTGRES_DB=crm
+      - POSTGRES_USER=crm
+      - POSTGRES_PASSWORD=crm
+
+volumes:
+  pgdata:
+    driver: local
+  pgconf:
+    driver: local
+  pglog:
+    driver: local
+

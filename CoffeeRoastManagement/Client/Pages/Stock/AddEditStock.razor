@@ -1,0 +1,247 @@
+﻿@page "/stock"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+@inject MudBlazor.ISnackbar snackbar
+@using CoffeeRoastManagement.Client.Pages.GreenBeanInfo
+<h3>Stock Management</h3>
+
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+
+@if (showInputDialog)
+{
+@if (greenbeaninfos != null)
+{
+<MudCard Elevation="25">
+    <MudCardHeader>
+        <CardHeaderContent>
+            <MudText Typo="Typo.h4">Select green bean</MudText>
+        </CardHeaderContent>
+    </MudCardHeader>
+    <MudCardContent>
+        <SelectGreenBeanOrCreateNew GreenBeanInfos="@greenbeaninfos" SelectedGreenBean="@selectedgreenbean" SelectionChangeCallback="@BeanSelectionChanged" SaveGreenBeanInfo="@SaveGreenBean"></SelectGreenBeanOrCreateNew>
+    </MudCardContent>
+</MudCard> }
+else
+{
+<p>Loading...</p>}
+                <MudCard Elevation="25">
+                    <MudCardHeader>
+                        <CardHeaderContent>
+                            <MudText Typo="Typo.h4">Add stock information</MudText>
+                        </CardHeaderContent>
+                    </MudCardHeader>
+                    <MudCardContent>
+                        <MudGrid>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudTextField @bind-Value="stock.Amount" Label="Amount" Variant="Variant.Text" Margin="Margin.Normal" Adornment="Adornment.End" AdornmentText="kg"></MudTextField>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudTextField @bind-Value="stock.OverallPrice" Label="OverallPrcice" Variant="Variant.Text"  Margin="Margin.Normal" Adornment="Adornment.Start" AdornmentText="@System.Globalization.NumberFormatInfo.CurrentInfo.CurrencySymbol"></MudTextField>
+                            </MudItem>
+                            @*<MudItem xs="12" sm="6" md="4">
+                                <MudText>@(stock.Amount != 0 ? (stock.OverallPrice / stock.Amount).ToString("N2") : "-") @System.Globalization.NumberFormatInfo.CurrentInfo.CurrencySymbol / kg</MudText>
+                            </MudItem>*@
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudSelect T="Contact" Label="Seller" @bind-Value="selectedContact" ToStringFunc="@converter" Required="true">
+                                    @foreach (Contact contact in contacts)
+                                    {
+                                        <MudSelectItem Value="@contact"></MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                            <MudItem xs="12" sm="6" md="4">
+                                <MudTextField @bind-Value="stock.GoodsReceived" Label="Received" Margin="Margin.Normal"></MudTextField>
+                            </MudItem>
+                            <br />
+                        </MudGrid>
+
+                        <MudButton Variant="Variant.Filled" Color="Color.Primary" OnClick="Save">Save Stock</MudButton>
+                        <MudText Color="Color.Error">@ErrorText</MudText>
+                    </MudCardContent>
+                </MudCard>}
+<br />
+<h4>Stock Overview</h4>
+
+@*<MudTable Elevation="25" Items="stocks" Filter="new Func<Stock, bool>(Search)" @bind-contact="stock">*@
+<MudTable Elevation="25" Items="stocks" @bind-contact="stock">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Green Bean Stock</MudText>
+        @*<MudToolBarSpacer />
+            <MudTextField @bind-Value="searchString" Placeholder="Search for Stocks..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>*@
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Country</MudTh>
+        <MudTh>Amount</MudTh>
+        <MudTh>Overall Price</MudTh>
+
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name">@context.GreenBeanInfo?.Name</MudTd>
+        <MudTd DataLabel="Country">@context.GreenBeanInfo?.Country</MudTd>
+        <MudTd DataLabel="Amount">@context.Amount</MudTd>
+        <MudTd DataLabel="OverallPrice">@context.OverallPrice</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(() => Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code { 
+    private GreenBeanInfo selectedgreenbean { get; set; }
+    private EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+    bool edit = false;
+    private string ErrorText = "";
+    private bool showInputDialog = false;
+    private Contact selectedContact { get; set; }
+
+    private Stock stock = new Stock();
+    private List<Stock> stocks = new List<Stock>();
+
+    private List<Contact> contacts = new List<Contact>();
+    private List<GreenBeanInfo> greenbeaninfos = new List<GreenBeanInfo>();
+
+    private void ToggleShowInputDialog()
+    {
+        if (edit && showInputDialog)
+        {
+            edit = false;
+            stock = new Stock();
+            selectedgreenbean = new GreenBeanInfo();
+            selectedContact = null;
+            return;
+        }
+        showInputDialog = !showInputDialog;
+    }
+
+    private void ShowInputDialog()
+    {
+        showInputDialog = true;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        stocks.Clear();
+        stocks.AddRange(s);
+
+        var c = await http.GetFromJsonAsync<Contact[]>("api/contact");
+        contacts.Clear();
+        contacts.AddRange(c); ;
+
+        var g = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
+        greenbeaninfos.Clear();
+        greenbeaninfos.AddRange(g);
+
+        selectedgreenbean = new GreenBeanInfo();
+    }
+
+    private bool Search(Stock stock)
+    {
+        return true;
+    }
+
+    private void BeanSelectionChanged(GreenBeanInfo beanInfo)
+    {
+        Console.WriteLine($"AddEditSTock.BeanSelectionChanged {beanInfo.Id} {beanInfo.Name}.");
+        selectedgreenbean = beanInfo;
+        StateHasChanged();
+    }
+
+    private async Task SaveGreenBean()
+    {
+        Console.WriteLine($"SaveGreenBean {selectedgreenbean.Name}.");
+        await http.PostAsJsonAsync("api/greenbeaninfo", selectedgreenbean);
+        snackbar.Add("Green bean information saved.", Severity.Success);
+        Console.WriteLine($"Save green bean {selectedgreenbean.Id}.");
+        var g = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
+        greenbeaninfos.Clear();
+        greenbeaninfos.AddRange(g);
+        Console.WriteLine($"AddEditStock.SaveGreenBean: {greenbeaninfos.Count}.");
+        var x = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
+        selectedgreenbean = x.FirstOrDefault(x => x.Name == selectedgreenbean.Name);
+        StateHasChanged();
+    }
+
+    private async void Save()
+    {
+        bool errorConditionMet = false;
+        ErrorText = "";
+        Console.WriteLine("AddEditStock.Save");
+        if (selectedContact == null || selectedContact.Id == 0)
+        {
+            ErrorText += "No seller selected";
+            errorConditionMet = true;
+        }
+        if (selectedgreenbean == null || string.IsNullOrEmpty(selectedgreenbean.Name))
+        {
+            ErrorText += System.Environment.NewLine + "Green bean info (name) missing";
+        }
+        if (errorConditionMet)
+        {
+            StateHasChanged();
+            return;
+        }
+        if (selectedgreenbean.Id == 0) { await SaveGreenBean(); }
+        stock.GreenBeanInfo = selectedgreenbean;
+        stock.SellerContact = selectedContact;
+        Console.WriteLine($"Save stock: {stock.GreenBeanInfo.Id}, {stock.SellerContact.Id}");
+        if (stock.Id == 0)
+        {
+            await http.PostAsJsonAsync("api/stock", stock);
+            snackbar.Add("Stock information saved.", Severity.Success);
+        }
+        else
+        {
+            await http.PutAsJsonAsync("api/stock", stock);
+            snackbar.Add("Stock information updated.", Severity.Success);
+
+        }
+        ErrorText = "";
+        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        stocks.Clear();
+        stocks.AddRange(s);
+        stock = new Stock();
+        edit = false;
+        selectedContact = null;
+        selectedgreenbean = new GreenBeanInfo();
+        StateHasChanged();
+    }
+
+    private async void Edit(int id)
+    {
+        edit = true;
+        ErrorText = "";
+        stock = await http.GetFromJsonAsync<Stock>($"api/stock/{id}");
+        selectedgreenbean = stock.GreenBeanInfo;
+        selectedContact = stock.SellerContact;
+        showInputDialog = true;
+        StateHasChanged();
+    }
+
+    private async void Delete(int id)
+    {
+        // reset form
+        edit = false;
+        showInputDialog = false;
+        selectedgreenbean = new GreenBeanInfo();
+        selectedContact = null;
+        stock = new Stock();
+        ErrorText = "";
+
+        // perform action
+        await http.DeleteAsync($"api/stock/{id}");
+        snackbar.Add("Stock information deleted.", Severity.Success);
+
+        // update data
+        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        stocks.Clear();
+        stocks.AddRange(s);
+        StateHasChanged();
+    }
+
+    Func<Contact, string> converter = c => (c?.Id != 0) ? c.Name : "None";
+
+}

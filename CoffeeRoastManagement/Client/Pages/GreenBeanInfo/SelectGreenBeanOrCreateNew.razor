@@ -1,0 +1,31 @@
+﻿
+<GreenBeanSelector GreenBeanInfos="@GreenBeanInfos" SelectedGreenBean="@SelectedGreenBean" OnClickCallback="@OnClick"></GreenBeanSelector>
+
+@if (SelectedGreenBean?.Id == 0)
+{ 
+    <GreenBeanForm ButtonText="Save bean" greenbeaninfo="SelectedGreenBean" OnValidSubmit="@(() => SaveGreenBeanInfo.InvokeAsync())"/>
+}
+
+@code {
+    [Parameter]
+    public List<GreenBeanInfo> GreenBeanInfos { get; set; }
+
+    [Parameter]
+    public GreenBeanInfo SelectedGreenBean { get; set; }
+
+    [Parameter]
+    public EventCallback<MouseEventArgs> OnClickCallback { get; set; }
+
+    [Parameter]
+    public EventCallback<GreenBeanInfo> SelectionChangeCallback { get; set; }
+
+    [Parameter]
+    public EventCallback<GreenBeanInfo> SaveGreenBeanInfo { get; set; }
+
+    void OnClick(GreenBeanInfo beanInfo)
+    {
+        Console.WriteLine($"OnClick {beanInfo.Id}, {beanInfo.Name}.");
+        SelectedGreenBean = beanInfo;
+        SelectionChangeCallback.InvokeAsync(SelectedGreenBean);
+    }
+} 
