@@ -5,7 +5,19 @@
     <Authors>Michael Boegl</Authors>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Remove="Store\EditContact_old\**" />
+    <Content Remove="Store\EditContact_old\**" />
+    <EmbeddedResource Remove="Store\EditContact_old\**" />
+    <None Remove="Store\EditContact_old\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Remove="Store\ContactState.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="ChartJs.Blazor.Fork" Version="2.0.2" />
+    <PackageReference Include="Fluxor" Version="4.0.0" />
+    <PackageReference Include="Fluxor.Blazor.Web" Version="4.0.0" />
+    <PackageReference Include="Fluxor.Blazor.Web.ReduxDevTools" Version="4.0.0" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="5.0.4" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="5.0.4" PrivateAssets="all" />
     <PackageReference Include="MudBlazor" Version="5.0.7" />

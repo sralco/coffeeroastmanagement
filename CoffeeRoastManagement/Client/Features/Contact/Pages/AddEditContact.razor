@@ -1,0 +1,109 @@
+﻿@page "/contact"
+@inject HttpClient http
+@inject NavigationManager uriHelper
+@inject IJSRuntime js
+@inject MudBlazor.ISnackbar snackbar
+@inject IDispatcher Dispatcher
+@inject IState<ContactState> ContactState
+@inject IState<ContactsState> ContactsState 
+
+@using CoffeeRoastManagement.Client.Features.Contact.Store 
+@using CoffeeRoastManagement.Client.Store.EditContact
+ 
+@inherits FluxorComponent
+
+<h3>Contacts Management</h3>
+
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+@if (showInputDialog)
+{
+    <ContactForm ButtonText="@ButtonAction" contact="contact" OnValidSubmit="@Save" />
+}
+
+<MudTable Elevation="25" Items="contacts"> @* @bind-contact="contact"> *@
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">Contacts</MudText>
+    </ToolBarContent>
+    <HeaderContent>
+        <MudTh>Name</MudTh>
+        <MudTh>Country</MudTh>
+        <MudTh>Note</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Name"><MudLink Href="@context.Url" Underline="Underline.Always">@context.Name</MudLink></MudTd>
+        <MudTd DataLabel="Country">@context.Country</MudTd>
+        <MudTd DataLabel="Note">@context.Note</MudTd>
+        <MudTd DataLabel="">
+            <MudFab @onclick="@(()=>Edit(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+        </MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code { 
+    private bool showInputDialog = false;
+    private string ButtonAction = "Create";
+
+    private Contact contact => ContactState.Value.Contact;
+
+    private Contact[] contacts => ContactsState.Value.Contacts;
+    private bool loading => ContactsState.Value.Loading;
+
+    private bool edit = false;
+
+
+    private void ToggleShowInputDialog()
+    {
+        if (edit && showInputDialog)
+        {
+            edit = false;
+            ButtonAction = "Create";
+            return;
+        }
+        showInputDialog = !showInputDialog;
+    }
+    private void ShowInputDialog(bool show)
+    {
+        showInputDialog = show;
+    }
+
+    private void LoadContacts()
+    {
+        Dispatcher.Dispatch(new ContactsLoadAction());
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (!ContactsState.Value.Initialized)
+        {
+            LoadContacts();
+            Dispatcher.Dispatch(new ContactsInitializedAction());
+        }
+        await base.OnInitializedAsync();
+    }
+
+    private async void Save()
+    {
+        Dispatcher.Dispatch(new ContactsSaveAction(contact));
+        snackbar.Add("Contact updated.", Severity.Success);
+        showInputDialog = false;
+        edit = false;
+        ButtonAction = "Create";
+    }
+
+    private async void Edit(Contact cont)
+    {
+        ShowInputDialog(true);
+        ButtonAction = "Update";
+        edit = true;
+        Dispatcher.Dispatch(new ContactEditAction(cont));
+    }
+
+    private async void Delete(Contact cont)
+    {
+        ShowInputDialog(false);
+        edit = false;
+        Dispatcher.Dispatch(new ContactsDeleteAction(cont));
+        snackbar.Add("Contact deleted.", Severity.Success);
+    }
+}
