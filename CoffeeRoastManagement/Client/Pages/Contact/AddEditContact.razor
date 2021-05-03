@@ -4,17 +4,16 @@
 @inject IJSRuntime js
 @inject MudBlazor.ISnackbar snackbar
 @inject IDispatcher Dispatcher
-@inject IState<ContactState> ContactState
 @inject IState<ContactsState> ContactsState 
 
-@using CoffeeRoastManagement.Client.Features.Contact.Store 
-@using CoffeeRoastManagement.Client.Store.EditContact
+@using CoffeeRoastManagement.Client.Store.State
+@using CoffeeRoastManagement.Client.Store.Features.EditContact.Actions 
  
 @inherits FluxorComponent
 
 <h3>Contacts Management</h3>
 
-<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ClickAddButton"></MudIconButton>
 @if (showInputDialog)
 {
     <ContactForm ButtonText="@ButtonAction" contact="contact" OnValidSubmit="@Save" />
@@ -41,30 +40,19 @@
 </MudTable>
 
 @code { 
-    private bool showInputDialog = false;
-    private string ButtonAction = "Create";
+    private bool showInputDialog => ContactsState.Value.ShowInputDialog;
+    private string ButtonAction => ContactsState.Value.ContactButtonText;
 
-    private Contact contact => ContactState.Value.Contact;
+    private Contact contact => ContactsState.Value.CurrentContact;
 
     private Contact[] contacts => ContactsState.Value.Contacts;
     private bool loading => ContactsState.Value.Loading;
 
-    private bool edit = false;
+    private bool edit => ContactsState.Value.ContactEditMode;
 
-
-    private void ToggleShowInputDialog()
+    private void ClickAddButton()
     {
-        if (edit && showInputDialog)
-        {
-            edit = false;
-            ButtonAction = "Create";
-            return;
-        }
-        showInputDialog = !showInputDialog;
-    }
-    private void ShowInputDialog(bool show)
-    {
-        showInputDialog = show;
+        Dispatcher.Dispatch(new ContactAddAction());
     }
 
     private void LoadContacts()
@@ -74,6 +62,13 @@
 
     protected override async Task OnInitializedAsync()
     {
+        SubscribeToAction<ContactDeleteSuccessAction>((action) => snackbar.Add("Contact deleted.", Severity.Success));
+        SubscribeToAction<ContactDeleteFailureAction>((action) => snackbar.Add($"Contact delete failed: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<ContactCreateSuccessAction>((action) => snackbar.Add("Contact created successfully.", Severity.Success));
+        SubscribeToAction<ContactCreateFailureAction>((action) => snackbar.Add($"Contact not created: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<ContactUpdateSuccessAction>((action) => snackbar.Add("Contact updated successfully.", Severity.Success));
+        SubscribeToAction<ContactUpdateFailureAction>((action) => snackbar.Add($"Contact update failed: {action.ErrorMessage}.", Severity.Error));
+
         if (!ContactsState.Value.Initialized)
         {
             LoadContacts();
@@ -82,28 +77,18 @@
         await base.OnInitializedAsync();
     }
 
-    private async void Save()
+    private void Save()
     {
         Dispatcher.Dispatch(new ContactsSaveAction(contact));
-        snackbar.Add("Contact updated.", Severity.Success);
-        showInputDialog = false;
-        edit = false;
-        ButtonAction = "Create";
     }
 
-    private async void Edit(Contact cont)
+    private void Edit(Contact cont)
     {
-        ShowInputDialog(true);
-        ButtonAction = "Update";
-        edit = true;
         Dispatcher.Dispatch(new ContactEditAction(cont));
     }
 
-    private async void Delete(Contact cont)
+    private void Delete(Contact cont)
     {
-        ShowInputDialog(false);
-        edit = false;
         Dispatcher.Dispatch(new ContactsDeleteAction(cont));
-        snackbar.Add("Contact deleted.", Severity.Success);
     }
 }

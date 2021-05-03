@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fluxor;
+using CoffeeRoastManagement.Client.Store.State;
+using CoffeeRoastManagement.Shared.Entities;
 
-namespace CoffeeRoastManagement.Client.Features.Contact.Store
+namespace CoffeeRoastManagement.Client.Store.Features.EditContact
 {
     public class ContactsFeature : Feature<ContactsState>
     {
@@ -19,6 +21,10 @@ namespace CoffeeRoastManagement.Client.Features.Contact.Store
             {
                 Initialized = false,
                 Loading = false,
+                ContactButtonText = "Create",
+                ContactEditMode = false,
+                CurrentContact = new Contact(),
+                ShowInputDialog = false,
                 Contacts = Array.Empty<CoffeeRoastManagement.Shared.Entities.Contact>()
             };
         }
