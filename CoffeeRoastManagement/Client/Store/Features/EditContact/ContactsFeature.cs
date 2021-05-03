@@ -25,7 +25,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact
                 ContactEditMode = false,
                 CurrentContact = new Contact(),
                 ShowInputDialog = false,
-                Contacts = Array.Empty<CoffeeRoastManagement.Shared.Entities.Contact>()
+                Contacts = Array.Empty<Contact>()
             };
         }
     }

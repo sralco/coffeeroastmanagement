@@ -8,7 +8,7 @@ using CoffeeRoastManagement.Client.Store.State;
 
 namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
 {
-    public static class ContactsReducers
+    public static class GreenBeansReducers
     {
         [ReducerMethod]
         public static ContactsState OnContactsSet(ContactsState state, ContactsSetAction action)

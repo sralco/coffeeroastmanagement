@@ -9,11 +9,11 @@ using CoffeeRoastManagement.Client.Store.Features.EditContact.Actions;
 
 namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Effects
 {
-    public class ContactsEffects
+    public class GreenBeansEffects
     {
         private readonly HttpClient _httpClient;
 
-        public ContactsEffects(HttpClient httpClient)
+        public GreenBeansEffects(HttpClient httpClient)
         {
             _httpClient = httpClient;
         }

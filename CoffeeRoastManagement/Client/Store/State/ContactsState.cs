@@ -16,7 +16,7 @@ namespace CoffeeRoastManagement.Client.Store.State
         public bool ContactEditMode { get; init; }
         public string ErrorMessage { get; init; }
         public bool ShowInputDialog { get; init; }
-        public CoffeeRoastManagement.Shared.Entities.Contact[] Contacts { get; init; }
-        public CoffeeRoastManagement.Shared.Entities.Contact CurrentContact { get; init; }
+        public Contact[] Contacts { get; init; }
+        public Contact CurrentContact { get; init; }
     }
 }
