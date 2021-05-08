@@ -11,7 +11,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
     public static class GreenBeansReducers
     {
         [ReducerMethod]
-        public static GreenBeansState OnContactsSet(GreenBeansState state, GreenBeansSetAction action)
+        public static GreenBeansState OnGreenBeanSet(GreenBeansState state, GreenBeansSetAction action)
         {
             return state with
             {
@@ -21,7 +21,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
         
         [ReducerMethod(typeof(GreenBeansInitializedAction))]
-        public static GreenBeansState OnContactsInitialized(GreenBeansState state)
+        public static GreenBeansState OnGreenBeansInitialized(GreenBeansState state)
         {
             return state with
             {
@@ -30,7 +30,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
 
         [ReducerMethod(typeof(GreenBeansLoadAction))]
-        public static GreenBeansState OnContactsLoad(GreenBeansState state)
+        public static GreenBeansState OnGreenBeanLoad(GreenBeansState state)
         {
             return state with
             {
@@ -39,7 +39,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
 
         [ReducerMethod]
-        public static GreenBeansState OnContactsDelete(GreenBeansState state, GreenBeansDeleteAction action)
+        public static GreenBeansState OnCGreenBeanDelete(GreenBeansState state, GreenBeansDeleteAction action)
         {
             if (state.CurrentGreenBean.Id == action.GreenBeanInfo.Id)
             {
@@ -108,7 +108,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
 
 
         [ReducerMethod]
-        public static GreenBeansState OnEditContact(GreenBeansState state, GreenBeanEditAction action)
+        public static GreenBeansState OnEditGreenBean(GreenBeansState state, GreenBeanEditAction action)
         {
             return state with
             {
@@ -121,7 +121,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
 
         [ReducerMethod]
-        public static GreenBeansState OnSaveContact(GreenBeansState state, GreenBeansSaveAction action)
+        public static GreenBeansState OnSaveGreenBean(GreenBeansState state, GreenBeansSaveAction action)
         {
             return state with
             {
@@ -135,7 +135,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
 
         [ReducerMethod]
-        public static GreenBeansState OnStopEditContact(GreenBeansState state, GreenBeanStopEditAction action)
+        public static GreenBeansState OnStopEditGreenBeanInfo(GreenBeansState state, GreenBeanStopEditAction action)
         {
             return state with
             {
@@ -145,7 +145,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Reducers
         }
 
         [ReducerMethod]
-        public static GreenBeansState OnAddContact(GreenBeansState state, GreenBeanAddAction action)
+        public static GreenBeansState OnAddGreenBean(GreenBeansState state, GreenBeanAddAction action)
         {
             // handle all cases, the last return statement handles the default case
             if (state.ShowInputDialog && state.GreenBeanEditMode)
