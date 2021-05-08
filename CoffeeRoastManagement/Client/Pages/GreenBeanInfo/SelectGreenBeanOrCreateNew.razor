@@ -3,7 +3,7 @@
 
 @if (SelectedGreenBean?.Id == 0)
 { 
-    <GreenBeanForm ButtonText="Save bean" greenbeaninfo="SelectedGreenBean" OnValidSubmit="@(() => SaveGreenBeanInfo.InvokeAsync())"/>
+    <GreenBeanForm ButtonText="Save bean" ShowCreateButton="@ShowCreateButton" greenbeaninfo="SelectedGreenBean" OnValidSubmit="@(() => SaveGreenBeanInfo.InvokeAsync())"/>
 }
 
 @code {
@@ -21,6 +21,9 @@
 
     [Parameter]
     public EventCallback<GreenBeanInfo> SaveGreenBeanInfo { get; set; }
+
+    [Parameter]
+    public bool ShowCreateButton { get; set; }
 
     void OnClick(GreenBeanInfo beanInfo)
     {

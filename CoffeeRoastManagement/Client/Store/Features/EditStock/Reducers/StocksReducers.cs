@@ -38,112 +38,80 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
             };
         }
 
-        //    [ReducerMethod]
-        //    public static ContactsState OnContactsDelete(ContactsState state, ContactsDeleteAction action)
-        //    {
-        //        if (state.CurrentContact.Id == action.Contact.Id)
-        //        {
-        //            return state with
-        //            {
-        //                CurrentContact = new CoffeeRoastManagement.Shared.Entities.Contact(),
-        //                ContactButtonText = "Create"
-        //            };
-        //        }
-        //        return state with
-        //        {
+        [ReducerMethod]
+        public static StocksState OnStockDelete(StocksState state, StockDeleteAction action)
+        {
+            if (state.CurrentStock.Id == action.Stock.Id)
+            {
+                return state with
+                {
+                    SelectedContact = new CoffeeRoastManagement.Shared.Entities.Contact(),
+                    SelectedGreenBeanInfo = new CoffeeRoastManagement.Shared.Entities.GreenBeanInfo(),
+                    CurrentStock = new CoffeeRoastManagement.Shared.Entities.Stock(),
+                    StockButtonText = "Create"
+                };
+            }
+            return state with
+            {
 
-        //        };
-        //    }
+            };
+        }
 
-        //    [ReducerMethod(typeof(ContactSubmitAction))]
+        [ReducerMethod]
+        public static StocksState StocksSaveGreenBean(StocksState state, StocksGreenBeanSaveAction action)
+        {
+            return state with
+            {
+                SelectedGreenBeanInfo = state.GreenBeans.FirstOrDefault(x => x.Name == action.GreenBean.Name)
+            };
+        }
 
-        //    public static ContactsState OnSubmit(ContactsState state)
-        //    {
-        //        return state with
-        //        {
-        //            Submitting = true
-        //        };
-        //    }
+        [ReducerMethod]
+        public static StocksState OnEditContact(StocksState state, StockEditAction action)
+        {
+            return state with
+            {
+                Submitted = false,
+                Submitting = false,
+                ShowInputDialog = true,
+                StockEditMode = true,
+                CurrentStock = action.Stock,
+                SelectedContact = action.Stock.SellerContact,
+                SelectedGreenBeanInfo = action.Stock.GreenBeanInfo,
+                StockButtonText = "Update"
+            };
+        }
 
-        //    [ReducerMethod(typeof(ContactCreateSuccessAction))]
-        //    public static ContactsState OnCreateSuccess(ContactsState state)
-        //    {
-        //        return state with
-        //        {
-        //            Submitting = false,
-        //            Submitted = true
-        //        };
-        //    }
+        [ReducerMethod]
+        public static StocksState OnSaveStock(StocksState state, StockSaveAction action)
+        {
+            return state with
+            {
+                Submitted = false,
+                Submitting = true,
+                StockButtonText = "Create",
+                ShowInputDialog = false,
+                StockEditMode = false
+            };
+        }
 
-        //    [ReducerMethod]
-        //    public static ContactsState OnCreateFailure(ContactsState state, ContactCreateFailureAction action)
-        //    {
-        //        return state with
-        //        {
-        //            Submitting = false,
-        //            ErrorMessage = action.ErrorMessage
-        //        };
-        //    }
+        [ReducerMethod]
+        public static StocksState SelectedContactChanged(StocksState state, SetSelectedContactAction action)
+        {
+            return state with
+            {
+                SelectedContact = action.Contact
+            };
+        }
 
-        //    [ReducerMethod(typeof(ContactUpdateSuccessAction))]
-        //    public static ContactsState OnUpdateSuccess(ContactsState state)
-        //    {
-        //        return state with
-        //        {
-        //            Submitting = false,
-        //            Submitted = true
-        //        };
-        //    }
-
-        //    [ReducerMethod]
-        //    public static ContactsState OnUpdateFailure(ContactsState state, ContactUpdateFailureAction action)
-        //    {
-        //        return state with
-        //        {
-        //            Submitting = false,
-        //            ErrorMessage = action.ErrorMessage
-        //        };
-        //    }
-
-
-
-        //    [ReducerMethod]
-        //    public static ContactsState OnEditContact(ContactsState state, ContactEditAction action)
-        //    {
-        //        return state with
-        //        {
-        //            Submitted = false,
-        //            Submitting = false,
-        //            ShowInputDialog = true,
-        //            CurrentContact = action.Contact,
-        //            ContactButtonText = "Update"
-        //        };
-        //    }
-
-        //    [ReducerMethod]
-        //    public static ContactsState OnSaveContact(ContactsState state, ContactsSaveAction action)
-        //    {
-        //        return state with
-        //        {
-        //            Submitted = false,
-        //            Submitting = true,
-        //            CurrentContact = new CoffeeRoastManagement.Shared.Entities.Contact(),
-        //            ContactButtonText = "Create",
-        //            ShowInputDialog = false,
-        //            ContactEditMode = false
-        //        };
-        //    }
-
-        //    [ReducerMethod]
-        //    public static ContactsState OnStopEditContact(ContactsState state, ContactStopEditAction action)
-        //    {
-        //        return state with
-        //        {
-        //            CurrentContact = action.Contact,
-        //            ContactButtonText = "Create",
-        //        };
-        //    }
-
+        [ReducerMethod]
+        public static StocksState SelectedGreenBeanChanged(StocksState state, SelectedGreenBeanChangeAction action)
+        {
+            return state with
+            {
+                SelectedGreenBeanInfo = action.GreenBeanInfo
+            };
+        }
         [ReducerMethod]
         public static StocksState OnAddStock(StocksState state, StocksAddAction action)
         {
@@ -157,16 +125,19 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
                     StockEditMode = false,
                     CurrentStock = new CoffeeRoastManagement.Shared.Entities.Stock(),
                     SelectedGreenBeanInfo = new CoffeeRoastManagement.Shared.Entities.GreenBeanInfo(),
+                    SelectedContact = null,
                     StockButtonText = "Create"
                 };
             }
             if (state.ShowInputDialog && !state.StockEditMode)
             {
-                if (!string.IsNullOrEmpty(state.CurrentStock.Note)) // TODO: finish
+                if (!AllFieldsEmpty(state)) // TODO: finish
                 {
                     return state with
                     {
                         CurrentStock = new CoffeeRoastManagement.Shared.Entities.Stock(),
+                        SelectedGreenBeanInfo = new CoffeeRoastManagement.Shared.Entities.GreenBeanInfo(),
+                        SelectedContact = null,
                         StockButtonText = "Create",
                     };
                 }
@@ -174,7 +145,6 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
                 {
                     return state with
                     {
-                        CurrentStock = new CoffeeRoastManagement.Shared.Entities.Stock(),
                         StockButtonText = "Create",
                         ShowInputDialog = false,
                     };
@@ -184,6 +154,23 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
             {
                 ShowInputDialog = true,
             };
+        }
+        
+        private static bool AllStockFieldsEmpty(StocksState state)
+        {
+            return state.CurrentStock.Amount == 0 && string.IsNullOrEmpty(state.CurrentStock.Note) && (state.SelectedContact == null || state.SelectedContact.Id == 0) && state.CurrentStock.GoodsReceived == DateTime.MinValue;
+        }
+
+        private static bool AllBeanFieldsEmpty(StocksState state)
+        {
+            return state.SelectedGreenBeanInfo.Id == 0 && (string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Farmer) && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Name)
+                && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Note) && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Processing) && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Region)
+                && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Variety) && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Region) && state.SelectedGreenBeanInfo.OverallCuppingScore == 0.0
+                && state.SelectedGreenBeanInfo.Crop == 0 && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Url) && string.IsNullOrEmpty(state.SelectedGreenBeanInfo.Country));
+        }
+        private static bool AllFieldsEmpty(StocksState state)
+        {
+            return AllStockFieldsEmpty(state) && AllBeanFieldsEmpty(state);
         }
     }
 }

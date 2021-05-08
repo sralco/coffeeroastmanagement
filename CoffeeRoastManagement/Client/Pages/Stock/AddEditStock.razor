@@ -22,7 +22,7 @@
 
 @if (showInputDialog)
 {
-@if (greenbeaninfos != null)
+@if (!beanloading)
 {
 <MudCard Elevation="25">
     <MudCardHeader>
@@ -31,7 +31,7 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <SelectGreenBeanOrCreateNew GreenBeanInfos="@greenbeaninfos" SelectedGreenBean="@selectedgreenbean" SelectionChangeCallback="@BeanSelectionChanged" SaveGreenBeanInfo="@SaveGreenBean"></SelectGreenBeanOrCreateNew>
+        <SelectGreenBeanOrCreateNew GreenBeanInfos="@greenbeaninfos" SelectedGreenBean="@selectedGreenBean" SelectionChangeCallback="@BeanSelectionChanged" SaveGreenBeanInfo="@SaveGreenBean" ShowCreateButton="false"></SelectGreenBeanOrCreateNew>
     </MudCardContent>
 </MudCard> }
 else
@@ -56,10 +56,11 @@ else
                                 </MudItem>*@
                         <MudItem xs="12" sm="6" md="4">
                             @*<MudSelect T="Contact" Label="Seller" @bind-Value="selectedContact" ToStringFunc="@converter" Required="true">*@
-                            <MudSelect T="Contact" Label="Seller" ToStringFunc="@converter" Required="true">
+                            <MudSelect T="Contact" Label="Seller" ValueChanged="ContactChanged" ToStringFunc="@converter" Required="true">
                                 @foreach (Contact contact in contacts)
                                 {
-                        <MudSelectItem Value="@contact"></MudSelectItem>}
+                                    <MudSelectItem Value="@contact"></MudSelectItem>
+                                }
                             </MudSelect>
                         </MudItem>
                             <MudItem xs="12" sm="6" md="4">
@@ -95,8 +96,8 @@ else
         <MudTd DataLabel="Amount">@context.Amount</MudTd>
         <MudTd DataLabel="OverallPrice">@context.OverallPrice</MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(() => Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
-            <MudFab @onclick="@(() => Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Edit(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Delete(@context))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
         </MudTd>
     </RowTemplate>
 </MudTable>
@@ -104,28 +105,22 @@ else
 @code { 
     private EventCallback<MouseEventArgs> OnClickCallback { get; set; }
 
+    bool beanloading => GreenBeansState.Value.Loading;
+
     bool edit => StocksState.Value.StockEditMode;
     private string ErrorText => StocksState.Value.ErrorMessage;
     private bool showInputDialog => StocksState.Value.ShowInputDialog;
 
-    private GreenBeanInfo selectedgreenbean => StocksState.Value.SelectedGreenBeanInfo;
+    private GreenBeanInfo selectedGreenBean => StocksState.Value.SelectedGreenBeanInfo;
     private GreenBeanInfo[] greenbeaninfos => GreenBeansState.Value.GreenBeans;
     private Contact[] contacts => ContactsState.Value.Contacts;
     private Contact selectedContact => StocksState.Value.SelectedContact;
     private Stock stock => StocksState.Value.CurrentStock;
     private Stock[] stocks => StocksState.Value.Stocks;
 
-    private void ToggleShowInputDialog()
+    private void ContactChanged(Contact e)
     {
-        //if (edit && showInputDialog)
-        //{
-        //    edit = false;
-        //    //stock = new Stock();
-        //    //selectedgreenbean = new GreenBeanInfo();
-        //    //selectedContact = null;
-        //    return;
-        //}
-        //showInputDialog = !showInputDialog;
+        Dispatcher.Dispatch(new SetSelectedContactAction(e));
     }
 
     private void ClickAddButton()
@@ -152,107 +147,36 @@ else
 
     protected override void OnInitialized()
     {
+        SubscribeToAction<StockDeleteSuccessAction>((action) => snackbar.Add("Stock deleted.", Severity.Success));
+        SubscribeToAction<StockDeleteFailureAction>((action) => snackbar.Add($"Stock delete failed: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<StockCreateSuccessAction>((action) => snackbar.Add("Stock created successfully.", Severity.Success));
+        SubscribeToAction<StockCreateFailureAction>((action) => snackbar.Add($"Stock not created: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<StockUpdateSuccessAction>((action) => snackbar.Add("Stock updated successfully.", Severity.Success));
+        SubscribeToAction<StockUpdateFailureAction>((action) => snackbar.Add($"Stock update failed: {action.ErrorMessage}.", Severity.Error));
         LoadData();
         base.OnInitialized();
     }
 
     private void BeanSelectionChanged(GreenBeanInfo beanInfo)
     {
-        Console.WriteLine($"AddEditSTock.BeanSelectionChanged {beanInfo.Id} {beanInfo.Name}.");
-        //selectedgreenbean = beanInfo;
-        StateHasChanged();
+        Dispatcher.Dispatch(new SelectedGreenBeanChangeAction(beanInfo));
     }
 
-    private async Task SaveGreenBean()
+    private void SaveGreenBean() { }
+
+    private void Save()
     {
-        //Console.WriteLine($"SaveGreenBean {selectedgreenbean.Name}.");
-        //await http.PostAsJsonAsync("api/greenbeaninfo", selectedgreenbean);
-        //snackbar.Add("Green bean information saved.", Severity.Success);
-        //Console.WriteLine($"Save green bean {selectedgreenbean.Id}.");
-        //var g = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
-        //greenbeaninfos.Clear();
-        //greenbeaninfos.AddRange(g);
-        //Console.WriteLine($"AddEditStock.SaveGreenBean: {greenbeaninfos.Count}.");
-        //var x = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
-        //selectedgreenbean = x.FirstOrDefault(x => x.Name == selectedgreenbean.Name);
-        //StateHasChanged();
+        Dispatcher.Dispatch(new StockSaveAction(selectedContact, selectedGreenBean, stock));
     }
 
-    private async void Save()
+    private void Edit(Stock st)
     {
-        //bool errorConditionMet = false;
-        //ErrorText = "";
-        //Console.WriteLine("AddEditStock.Save");
-        //if (selectedContact == null || selectedContact.Id == 0)
-        //{
-        //    ErrorText += "No seller selected";
-        //    errorConditionMet = true;
-        //}
-        //if (selectedgreenbean == null || string.IsNullOrEmpty(selectedgreenbean.Name))
-        //{
-        //    ErrorText += System.Environment.NewLine + "Green bean info (name) missing";
-        //}
-        //if (errorConditionMet)
-        //{
-        //    StateHasChanged();
-        //    return;
-        //}
-        //if (selectedgreenbean.Id == 0) { await SaveGreenBean(); }
-        //stock.GreenBeanInfo = selectedgreenbean;
-        //stock.SellerContact = selectedContact;
-        //Console.WriteLine($"Save stock: {stock.GreenBeanInfo.Id}, {stock.SellerContact.Id}");
-        //if (stock.Id == 0)
-        //{
-        //    await http.PostAsJsonAsync("api/stock", stock);
-        //    snackbar.Add("Stock information saved.", Severity.Success);
-        //}
-        //else
-        //{
-        //    await http.PutAsJsonAsync("api/stock", stock);
-        //    snackbar.Add("Stock information updated.", Severity.Success);
-
-        //}
-        //ErrorText = "";
-        //var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
-        //stocks.Clear();
-        //stocks.AddRange(s);
-        //stock = new Stock();
-        //edit = false;
-        //selectedContact = null;
-        //selectedgreenbean = new GreenBeanInfo();
-        //StateHasChanged();
+        Dispatcher.Dispatch(new StockEditAction(st));
     }
 
-    private async void Edit(int id)
+    private void Delete(Stock st)
     {
-        //edit = true;
-        //ErrorText = "";
-        //stock = await http.GetFromJsonAsync<Stock>($"api/stock/{id}");
-        //selectedgreenbean = stock.GreenBeanInfo;
-        //selectedContact = stock.SellerContact;
-        //showInputDialog = true;
-        //StateHasChanged();
-    }
-
-    private async void Delete(int id)
-    {
-        //// reset form
-        //edit = false;
-        //showInputDialog = false;
-        //selectedgreenbean = new GreenBeanInfo();
-        //selectedContact = null;
-        //stock = new Stock();
-        //ErrorText = "";
-
-        //// perform action
-        //await http.DeleteAsync($"api/stock/{id}");
-        //snackbar.Add("Stock information deleted.", Severity.Success);
-
-        //// update data
-        //var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
-        //stocks.Clear();
-        //stocks.AddRange(s);
-        //StateHasChanged();
+        Dispatcher.Dispatch(new StockDeleteAction(st));
     }
 
     Func<Contact, string> converter = c => (c?.Id != 0) ? c.Name : "None";

@@ -18,75 +18,126 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
         }
     }
 
-    //public class ContactsDeleteAction
-    //{
-    //    public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+    public class SelectedGreenBeanChangeAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.GreenBeanInfo GreenBeanInfo { get; }
 
-    //    public ContactsDeleteAction(CoffeeRoastManagement.Shared.Entities.Contact contact)
-    //    {
-    //        Contact = contact;
-    //    }
-    //}
+        public SelectedGreenBeanChangeAction(CoffeeRoastManagement.Shared.Entities.GreenBeanInfo greenBeanInfo)
+        {
+            GreenBeanInfo = greenBeanInfo;
+        }
+    }
+    public class StocksGreenBeansLoadAction { }
 
-    //public class ContactDeleteSuccessAction { }
-    //public class ContactDeleteFailureAction
-    //{
-    //    public string ErrorMessage { get; }
-    //    public ContactDeleteFailureAction(string errorMessage)
-    //    {
-    //        ErrorMessage = errorMessage;
-    //    }
-    //}
+    public class StockDeleteAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.Stock Stock { get; }
+
+        public StockDeleteAction(CoffeeRoastManagement.Shared.Entities.Stock stock)
+        {
+            Stock = stock;
+        }
+    }
+
+    public class StockDeleteSuccessAction { }
+    public class StockDeleteFailureAction
+    {
+        public string ErrorMessage { get; }
+        public StockDeleteFailureAction(string errorMessage)
+        {
+            ErrorMessage = errorMessage;
+        }
+    }
+
+    public class StocksGreenBeanSaveAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.GreenBeanInfo GreenBean { get; }
+
+        public StocksGreenBeanSaveAction(CoffeeRoastManagement.Shared.Entities.GreenBeanInfo greenBean)
+        {
+            GreenBean = greenBean;
+        }
+    }
+
+    public class StockSaveAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+        public CoffeeRoastManagement.Shared.Entities.GreenBeanInfo GreenBean { get; }
+        public CoffeeRoastManagement.Shared.Entities.Stock Stock { get; }
+
+        public StockSaveAction(CoffeeRoastManagement.Shared.Entities.Contact contact, CoffeeRoastManagement.Shared.Entities.GreenBeanInfo greenBean, CoffeeRoastManagement.Shared.Entities.Stock stock)
+        {
+            Contact = contact;
+            GreenBean = greenBean;
+            Stock = stock;
+        }
+    }
+
+    public class StockSaveActionSecond
+    {
+        public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+        public CoffeeRoastManagement.Shared.Entities.GreenBeanInfo GreenBean { get; }
+        public CoffeeRoastManagement.Shared.Entities.Stock Stock { get; }
+
+        public StockSaveActionSecond(CoffeeRoastManagement.Shared.Entities.Contact contact, CoffeeRoastManagement.Shared.Entities.GreenBeanInfo greenBean, CoffeeRoastManagement.Shared.Entities.Stock stock)
+        {
+            Contact = contact;
+            GreenBean = greenBean;
+            Stock = stock;
+
+        }
+    }
+
+    public class SetSelectedContactAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+        public SetSelectedContactAction(CoffeeRoastManagement.Shared.Entities.Contact contact)
+        {
+            Contact = contact;
+        }
+    }
+
+    public class StockCreateSuccessAction { }
+
+    public class StockCreateFailureAction
+    {
+        public string ErrorMessage { get; }
+        public StockCreateFailureAction(string errorMessage)
+        {
+            ErrorMessage = errorMessage;
+        }
+    }
+
+    public class StockUpdateSuccessAction { }
     
-    //public class ContactsSaveAction
-    //{
-    //    public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+    public class StockUpdateFailureAction
+    {
+        public string ErrorMessage { get; }
+        public StockUpdateFailureAction(string errorMessage)
+        {
+            ErrorMessage = errorMessage;
+        }
 
-    //    public ContactsSaveAction(CoffeeRoastManagement.Shared.Entities.Contact contact)
-    //    {
-    //        Contact = contact;
-    //    }
-    //}
+    }
+   
+    public class StockSubmitAction
+    {
+        //public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
+        public StockSubmitAction(/*CoffeeRoastManagement.Shared.Entities.Contact contact*/)
+        {
+            //Contact = contact;
+        }
+    }
 
-    //public class ContactCreateSuccessAction { }
+    public class StockEditAction
+    {
+        public CoffeeRoastManagement.Shared.Entities.Stock Stock { get; }
 
-    //public class ContactCreateFailureAction
-    //{
-    //    public string ErrorMessage { get; }
-    //    public ContactCreateFailureAction(string errorMessage)
-    //    {
-    //        ErrorMessage = errorMessage;
-    //    }
-    //}
-
-    //public class ContactUpdateSuccessAction { }
-    //public class ContactUpdateFailureAction
-    //{
-    //    public string ErrorMessage { get; }
-    //    public ContactUpdateFailureAction(string errorMessage)
-    //    {
-    //        ErrorMessage = errorMessage;
-    //    }
-
-    //}
-    //public class ContactSubmitAction
-    //{
-    //    public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
-    //    public ContactSubmitAction(CoffeeRoastManagement.Shared.Entities.Contact contact)
-    //    {
-    //        Contact = contact;
-    //    }
-    //}
-
-    //public class ContactEditAction
-    //{
-    //    public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
-
-    //    public ContactEditAction(CoffeeRoastManagement.Shared.Entities.Contact contact)
-    //    {
-    //        Contact = contact;
-    //    }
-    //}
+        public StockEditAction(CoffeeRoastManagement.Shared.Entities.Stock stock)
+        {
+            Stock = stock;
+        }
+    }
 
     //public class ContactStopEditAction
     //{
