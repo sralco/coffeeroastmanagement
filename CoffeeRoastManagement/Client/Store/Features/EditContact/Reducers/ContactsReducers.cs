@@ -56,7 +56,6 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
         }
 
         [ReducerMethod(typeof(ContactSubmitAction))]
-        
         public static ContactsState OnSubmit(ContactsState state)
         {
             return state with
@@ -104,8 +103,6 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
                 ErrorMessage = action.ErrorMessage
             };
         }
-
-
 
         [ReducerMethod]
         public static ContactsState OnEditContact(ContactsState state, ContactEditAction action)

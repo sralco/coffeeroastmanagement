@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
 {
     public class ContactsInitializedAction { }
+    
     public class ContactsLoadAction { }
 
     public class ContactsSetAction
@@ -29,6 +30,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
     }
 
     public class ContactDeleteSuccessAction { }
+    
     public class ContactDeleteFailureAction
     {
         public string ErrorMessage { get; }
@@ -60,6 +62,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
     }
 
     public class ContactUpdateSuccessAction { }
+    
     public class ContactUpdateFailureAction
     {
         public string ErrorMessage { get; }
@@ -69,6 +72,7 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
         }
 
     }
+    
     public class ContactSubmitAction
     {
         public CoffeeRoastManagement.Shared.Entities.Contact Contact { get; }
