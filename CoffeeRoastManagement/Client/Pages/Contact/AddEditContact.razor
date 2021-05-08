@@ -60,7 +60,7 @@
         Dispatcher.Dispatch(new ContactsLoadAction());
     }
 
-    protected override async Task OnInitializedAsync()
+    protected void OnInitialized()
     {
         SubscribeToAction<ContactDeleteSuccessAction>((action) => snackbar.Add("Contact deleted.", Severity.Success));
         SubscribeToAction<ContactDeleteFailureAction>((action) => snackbar.Add($"Contact delete failed: {action.ErrorMessage}.", Severity.Error));
@@ -74,7 +74,7 @@
             LoadContacts();
             Dispatcher.Dispatch(new ContactsInitializedAction());
         }
-        await base.OnInitializedAsync();
+        base.OnInitialized();
     }
 
     private void Save()
