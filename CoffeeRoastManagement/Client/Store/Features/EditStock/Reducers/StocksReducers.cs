@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Fluxor;
-using CoffeeRoastManagement.Client.Store.Features.EditContact.Actions;
+using CoffeeRoastManagement.Client.Store.Features.EditStock.Actions;
 using CoffeeRoastManagement.Client.Store.State;
 
-namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Reducers
+namespace CoffeeRoastManagement.Client.Store.Features.EditStock.Reducers
 {
     public static class StocksReducers
     {

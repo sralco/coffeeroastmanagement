@@ -8,7 +8,7 @@ using CoffeeRoastManagement.Shared.Entities;
 
 namespace CoffeeRoastManagement.Client.Store.Features.EditStock
 {
-    public class StocksFeature : Feature<StocksState>
+    public class RoastsFeature : Feature<StocksState>
     {
         public override string GetName()
         {

@@ -17,7 +17,8 @@ namespace CoffeeRoastManagement.Shared.DataModel
         public string ArtisanOSVersion { get; set; }
         public string RoasterType { get; set; }
         public string MachineSetup { get; set; }
-        public int Epoch { get; set; }
+        public int RoastEpoch { get; set; }
+        public int RoastTZOffset { get; set; }
         public string Beans { get; set; }
         //public int Weight { get; set; }
         //public int Density { get; set; }

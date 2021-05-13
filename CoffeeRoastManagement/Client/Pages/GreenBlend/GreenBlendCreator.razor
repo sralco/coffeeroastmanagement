@@ -10,10 +10,12 @@
                     <tbody>
                         @foreach (var x in blend)
                         {
-                            <tr>
-                                <td><MudTextField Label="Green bean" @bind-Value="x.StockItem.GreenBeanInfo.Name" Disabled="true"/></td>
-                                <td><MudTextField Label="Amount" @bind-Value="x.Amount" Disabled="false" Adornment="Adornment.End" AdornmentText="kg" TextChanged="@(() => AmountChanged())"/></td>
-                            </tr>
+                        <tr>
+                            <td><MudTextField Label="Green bean" @bind-Value="x.StockItem.GreenBeanInfo.Name" Disabled="true" /></td>
+                            <td><MudTextField Label="Amount" @bind-Value="x.Amount" Disabled="false" Adornment="Adornment.End" AdornmentText="kg" TextChanged="@(() => AmountChanged())" /></td>
+                            @*<td><MudTextField Label="Green bean" Value="x.StockItem.GreenBeanInfo.Name" Disabled="true" /></td>
+                            <td><MudTextField Label="Amount" Value="x.Amount" Disabled="false" Adornment="Adornment.End" AdornmentText="kg" TextChanged="@(() => AmountChanged())" /></td>*@
+                        </tr>
                     }
                     </tbody>
                 </MudSimpleTable>
@@ -22,52 +24,53 @@
 
 } 
 @code {
-    [Parameter]
-    public List<Stock> AvailableBeans { get; set; }
-    [Parameter]
-    public List<GreenBlend> SelectedBeans { get; set; }
-    [Parameter]
-    public EventCallback<List<GreenBlend>> CurrentSelection { get; set; }
-    [Parameter] 
-    public EventCallback OnValidSubmit { get; set; }
-    
-    private List<GreenBlend> blend { get; set; } = new List<GreenBlend>();
+        [Parameter]
+        public Stock[] AvailableBeans { get; set; }
+        [Parameter]
+        public GreenBlend[] SelectedBeans { get; set; }
+        [Parameter]
+        public EventCallback<GreenBlend[]> CurrentSelection { get; set; }
+        [Parameter]
+        public EventCallback OnValidSubmit { get; set; }
 
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine($"OnParametersSet {AvailableBeans.Count}.");
-        blend.Clear();
-        foreach (var x in AvailableBeans)
+        private List<GreenBlend> blend { get; set; } = new List<GreenBlend>();
+
+        protected override void OnParametersSet()
         {
-            if (x.BeansAvailable)
+            Console.WriteLine($"OnParametersSet {AvailableBeans.Length}.");
+            blend.Clear();
+            foreach (var x in AvailableBeans)
             {
-                Console.WriteLine($"Add to list {x.Id}, {x.GreenBeanInfo.Name}.");
-                var gb = new GreenBlend()
+                if (x.BeansAvailable)
                 {
-                    Id = GetGreenBlendId(x),
-                    StockItem = x,
-                    Amount = GetAmount(x.GreenBeanInfo)
+                    Console.WriteLine($"Add to list {x.Id}, {x.GreenBeanInfo.Name}.");
+                    var gb = new GreenBlend()
+                    {
+                        Id = GetGreenBlendId(x),
+                        StockItem = x,
+                        Amount = GetAmount(x)
                 };
                 blend.Add(gb);
             }
         }
     }
 
-    private int GetGreenBlendId(Stock gb)
+    private int GetGreenBlendId(Stock st)
     {
-        var res = SelectedBeans.FirstOrDefault(x => x.StockItem.Id == gb.Id);
+        var res = SelectedBeans.FirstOrDefault(x => x.StockItem.Id == st.Id);
         if (res != null)
         {
             return res.Id;
         }
         return 0;
     }
+
     // Checks if there is already a green bean selected for the blend and returns the amount
-    private double GetAmount(GreenBeanInfo gbi)
+    private double GetAmount(Stock st)
     {
         foreach (var sb in SelectedBeans)
         {
-            if (sb.StockItem.Id == gbi.Id)
+            if (sb.StockItem.Id == st.Id)
             {
                 return sb.Amount;
             }
@@ -88,8 +91,6 @@
                 Console.WriteLine($"add bean {x.StockItem.GreenBeanInfo.Name} with {x.Amount}.");
             }
         }
-        CurrentSelection.InvokeAsync(selectedbeans);
+        CurrentSelection.InvokeAsync(selectedbeans.ToArray());
     }
-
-
 }

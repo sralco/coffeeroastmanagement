@@ -5,12 +5,12 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using System.Net.Http.Json;
 using Fluxor;
-using CoffeeRoastManagement.Client.Store.Features.EditContact.Actions;
+using CoffeeRoastManagement.Client.Store.Features.EditStock.Actions;
 using CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Actions;
 using CoffeeRoastManagement.Client.Store.State;
 using System.Threading;
 
-namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Effects
+namespace CoffeeRoastManagement.Client.Store.Features.EditStock.Effects
 {
     public class StocksEffects
     {

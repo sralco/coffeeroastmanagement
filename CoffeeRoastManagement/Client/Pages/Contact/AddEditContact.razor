@@ -60,7 +60,7 @@
         Dispatcher.Dispatch(new ContactsLoadAction());
     }
 
-    protected void OnInitialized()
+    protected override void OnInitialized()
     {
         SubscribeToAction<ContactDeleteSuccessAction>((action) => snackbar.Add("Contact deleted.", Severity.Success));
         SubscribeToAction<ContactDeleteFailureAction>((action) => snackbar.Add($"Contact delete failed: {action.ErrorMessage}.", Severity.Error));

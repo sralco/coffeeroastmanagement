@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace CoffeeRoastManagement.Client.Store.Features.EditContact.Actions
+namespace CoffeeRoastManagement.Client.Store.Features.EditStock.Actions
 {
     public class StocksInitializedAction { }
     public class StocksLoadAction { }
