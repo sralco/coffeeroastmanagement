@@ -57,10 +57,10 @@ else
                                 </MudItem>*@
                         <MudItem xs="12" sm="6" md="4">
                             @*<MudSelect T="Contact" Label="Seller" @bind-Value="selectedContact" ToStringFunc="@converter" Required="true">*@
-                            <MudSelect T="Contact" Label="Seller" ValueChanged="ContactChanged" ToStringFunc="@converter" Required="true">
+                            <MudSelect T="Contact" Label="Seller" Value="selectedContact" ValueChanged="ContactChanged" ToStringFunc="@converter" Required="true">
                                 @foreach (Contact contact in contacts)
                                 {
-                                    <MudSelectItem Value="@contact"></MudSelectItem>
+                                    <MudSelectItem Value="@contact" ></MudSelectItem>
                                 }
                             </MudSelect>
                         </MudItem>
