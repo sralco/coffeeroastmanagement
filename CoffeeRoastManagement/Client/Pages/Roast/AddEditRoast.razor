@@ -3,12 +3,23 @@
 @inject NavigationManager uriHelper
 @inject IJSRuntime js
 @inject MudBlazor.ISnackbar snackbar
+@inject IDispatcher Dispatcher
+@inject IState<RoastsState> RoastsState
+@inject IState<GreenBeansState> GreenBeansState
+
 @using System.IO
 @using CoffeeRoastManagement.Client.Pages.GreenBlend
 
+@using CoffeeRoastManagement.Client.Store.State
+@using CoffeeRoastManagement.Client.Pages.GreenBeanInfo
+@using CoffeeRoastManagement.Client.Store.Features.EditRoast.Actions
+@using CoffeeRoastManagement.Client.Store.Features.EditStock.Actions
+
+@inherits FluxorComponent
+
 <h3>Roast Management</h3>
 
-<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ClickAddButton"></MudIconButton>
 
 @if (showInputDialog)
 {
@@ -19,13 +30,13 @@
         </CardHeaderContent>
     </MudCardHeader>
     <MudCardContent>
-        <MudTextField @bind-Value="roast.Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
-        <MudTextField @bind-Value="roast.ShortInfo" Label="ShortInfo" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField Value="Name" Label="Name" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@NameChanged"></MudTextField>
+        <MudTextField Value="ShortInfo" Label="ShortInfo" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@ShortInfoChanged"></MudTextField>
         <MudText>Green bean for roast</MudText>
         <GreenBlendCreator AvailableBeans="@stocks" CurrentSelection="@CurrentBeanSelection" SelectedBeans="@greenblends"></GreenBlendCreator>
-        <MudTextField @bind-Value="Date" Label="Date" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
-        <MudTextField @bind-Value="Time" Label="Time" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
-        <MudTextField @bind-Value="roast.Equipment" Label="Equipment" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField Value="Date" Label="Date" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@DateChanged"></MudTextField>
+        <MudTextField Value="Time" Label="Time" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@TimeChanged"></MudTextField>
+        <MudTextField Value="Equipment" Label="Equipment" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@EquipmentChanged"></MudTextField>
         <!-- Cupping info selection -->
         @*<MudSelect Label="Cupping" @bind-Value="cuppingId">
                 @foreach (Cupping c in cuppings)
@@ -33,10 +44,10 @@
                     <MudSelectItem T="int?" Value="@c.Id">@(c.Date + ", " + c.Note)</MudSelectItem>
                 }
             </MudSelect>*@
-        <MudTextField @bind-Value="roast.Note" Label="Notes" Variant="Variant.Text" Margin="Margin.Normal"></MudTextField>
+        <MudTextField Value="Note" Label="Notes" Variant="Variant.Text" Margin="Margin.Normal" TextChanged="@NoteChanged"></MudTextField>
 
 
-        <InputFile id="fileInput112" OnChange="UploadProfile" hidden/>
+        <InputFile id="fileInput112" OnChange="UploadProfile" hidden />
         <MudButton HtmlTag="label"
                    Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -46,7 +57,7 @@
         </MudButton>
         <br />
 
-        <InputFile id="fileInputPhoto" OnChange="UploadPhoto" hidden/>
+        <InputFile id="fileInputPhoto" OnChange="UploadPhoto" hidden />
         <MudButton HtmlTag="label"
                    Variant="Variant.Filled"
                    Color="Color.Primary"
@@ -55,15 +66,12 @@
             Upload photo
         </MudButton>
 
-        <br/>
+        <br />
         <MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="Save">Save Roast</MudButton>
     </MudCardContent>
 </MudCard>
-    <br/>
-}
-
-@*<MudTable Elevation="25" Items="roasts" Filter="new Func<Roast, bool>(Search)" @bind-contact="roast">*@
-<MudTable Elevation="25" Items="roasts" @bind-contact="roast">
+                <br /> } @*<MudTable Elevation="25" Items="roasts" Filter="new Func<Roast, bool>(Search)" @bind-contact="roast">*@
+<MudTable Elevation="25" Items="roasts">
     <ToolBarContent>
         <MudText Typo="Typo.h6">Roasts</MudText>
         @*<MudToolBarSpacer />
@@ -82,165 +90,90 @@
         <MudTd DataLabel="Note">@context.Note</MudTd>
         <!-- <MudTh DataLabel="RoastProfile">@context.RoastProfile</MudTh> -->
         <MudTd DataLabel="">
-            @*<MudButton @onclick="@(() => Details(@context.Id))">Details</MudButton>*@
-            <MudFab @onclick="@(() => Details(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.ZoomIn" Size="Size.Small" IconSize="Size.Small" />
-            <MudFab @onclick="@(() => Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
-            <MudFab @onclick="@(() => Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Details(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.ZoomIn" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Edit(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Delete(@context))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
         </MudTd>
     </RowTemplate>
 </MudTable>
 
 
-@code {
-    private bool showInputDialog { get; set; } = false;
-    private bool edit = false;
+@code { 
+    private bool showInputDialog => RoastsState.Value.ShowInputDialog;
+    private bool edit => RoastsState.Value.RoastEditMode;
 
-    //private string searchString = "";
-    private Roast roast = new Roast();
-    private List<Roast> roasts = new List<Roast>();
+    private Roast roast => RoastsState.Value.CurrentRoast;
+    private Roast[] roasts => RoastsState.Value.Roasts;
 
-    private List<Stock> stocks = new List<Stock>();
+    private Stock[] stocks => RoastsState.Value.Stocks;
 
-    private List<GreenBlend> greenblends = new List<GreenBlend>();
+    private GreenBlend[] greenblends => RoastsState.Value.GreenBlends;
 
-    private DateTime? Date { get; set; }
-    private TimeSpan? Time { get; set; }
+    private string Name => RoastsState.Value.Name;
+    private string ShortInfo => RoastsState.Value.ShortInfo;
+    private string Note => RoastsState.Value.Note;
+    private DateTime? Date => RoastsState.Value.Date;
+    private TimeSpan? Time => RoastsState.Value.Time;
+    private string Equipment => RoastsState.Value.Equipment;
+
+    private void ClickAddButton()
+    {
+        Dispatcher.Dispatch(new RoastsAddAction());
+    }
 
     private string GenerateLink(int id)
     {
         return $"roast/detail/{id}";
     }
 
-    private async void GetRoasts()
+    private void LoadData()
     {
-        var r = await http.GetFromJsonAsync<Roast[]>("api/roast");
-        roasts.Clear();
-        roasts.AddRange(r);
-
-        StateHasChanged();
-    }
-
-    private async void GetStocks()
-    {
-        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
-        stocks.Clear();
-        stocks.AddRange(s);
-        StateHasChanged();
+        Dispatcher.Dispatch(new RoastsLoadAction());
     }
 
     protected override void OnInitialized()
     {
-        GetRoasts();
-        GetStocks();
+        //SubscribeToAction<ContactDeleteSuccessAction>((action) => snackbar.Add("Contact deleted.", Severity.Success));
+        //SubscribeToAction<ContactDeleteFailureAction>((action) => snackbar.Add($"Contact delete failed: {action.ErrorMessage}.", Severity.Error));
+        //SubscribeToAction<ContactCreateSuccessAction>((action) => snackbar.Add("Contact created successfully.", Severity.Success));
+        //SubscribeToAction<ContactCreateFailureAction>((action) => snackbar.Add($"Contact not created: {action.ErrorMessage}.", Severity.Error));
+        //SubscribeToAction<ContactUpdateSuccessAction>((action) => snackbar.Add("Contact updated successfully.", Severity.Success));
+        //SubscribeToAction<ContactUpdateFailureAction>((action) => snackbar.Add($"Contact update failed: {action.ErrorMessage}.", Severity.Error));
 
-        ResetRoast();
-
-        //var g = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
-        //greenblends.Clear();
-        //greenblends.AddRange(g);
-
-        //var c = await http.GetFromJsonAsync<Cupping[]>("api/cupping");
-        //cuppings.Clear();
-        //cuppings.AddRange(c);
-    }
-
-    //private bool Search(Roast roast)
-    //{
-    //    if (string.IsNullOrWhiteSpace(searchString)) return true;
-    //    if (roast.Note.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-    //    {
-    //        return true;
-    //    }
-    //    return false;
-    //}
-
-    private async Task SaveOrUpdateGreenBlend()
-    {
-
-        foreach (var gb in greenblends)
+        if (!RoastsState.Value.Initialized)
         {
-            gb.StockItem = stocks.FirstOrDefault(x => x.Id == gb.StockItem.Id);
-            if (gb.Id == 0)
-            {
-                await http.PostAsJsonAsync("api/greenblend", gb);
-                snackbar.Add("Green blend saved.", Severity.Success);
-            }
-            else
-            {
-                await http.PutAsJsonAsync("api/greenblend", gb);
-                snackbar.Add("Green blend updated.", Severity.Success);
-
-            }
+            LoadData();
+            Dispatcher.Dispatch(new RoastsInitializedAction());
         }
-        var g = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
-        greenblends.Clear();
-        greenblends.AddRange(g);
+        base.OnInitialized();
     }
 
-    private async void Save()
+    private void Save()
     {
-
-        // first save or update green blend
-        if (Date != null && Time != null)
+        var nRoast = new Roast()
         {
-            roast.Date = Date.HasValue ? Date.Value.Date : DateTime.MinValue;
-            roast.Date += Time.HasValue ? Time.Value : TimeSpan.Zero;
-        }
-        await SaveOrUpdateGreenBlend();
-        if (roast.Id == 0)
-        {
-            roast.Beans = new List<GreenBlend>();
-            roast.Beans.AddRange(greenblends);
-            await http.PostAsJsonAsync("api/roast", roast);
-            snackbar.Add("Roast saved.", Severity.Success);
-        }
-        else
-        {
-            roast.Beans = new List<GreenBlend>();
-            roast.Beans.AddRange(greenblends);
-            await http.PutAsJsonAsync("api/roast", roast);
-            snackbar.Add("Roast updated.", Severity.Success);
-
-        }
-        GetRoasts();
-        edit = false;
-        ResetRoast();
-        ToggleShowInputDialog();
-        StateHasChanged();
+            Id = roast.Id,
+            Name = Name,
+            ShortInfo = ShortInfo,
+            Note = Note,
+            Equipment = Equipment,
+            Beans = new List<GreenBlend>(greenblends),
+            Date = Date == null ? DateTime.MinValue : Date.Value.Add(Time.Value),
+            CuppingInfo = new CoffeeRoastManagement.Shared.Entities.Cupping(),
+            Photo = RoastsState.Value.Photo,
+            RoastProfile = RoastsState.Value.RoastProfile
+        };
+        Dispatcher.Dispatch(new RoastsSaveRoastAction(nRoast));
     }
 
-    private void ResetRoast()
+    private void Edit(Roast roast)
     {
-        roast = new Roast();
-        var date = DateTime.Now;
-        roast.Date = new DateTime(date.Year, date.Month, date.Day, date.Hour, date.Minute, date.Second, date.Kind);
-        Date = roast.Date.Date;
-        Time = roast.Date.TimeOfDay;
-        greenblends.Clear();
+        Dispatcher.Dispatch(new RoastsRoastEditAction(roast));
     }
 
-    private async void Edit(int id)
+    private void Delete(Roast roast)
     {
-        edit = true;
-        showInputDialog = true;
-
-        roast = await http.GetFromJsonAsync<Roast>($"api/roast/{id}");
-        greenblends = roast.Beans;
-        Date = roast.Date.Date;
-        Time = roast.Date.TimeOfDay;
-        StateHasChanged();
-    }
-
-    private async void Delete(int id)
-    {
-        edit = false;
-        showInputDialog = false;
-        ResetRoast();
-
-        await http.DeleteAsync($"api/roast/{id}");
-        snackbar.Add("Roast deleted.", Severity.Success);
-        GetRoasts();
-        StateHasChanged();
+        Dispatcher.Dispatch(new RoastsRoastDeleteAction(roast));
     }
 
     private async void UploadProfile(InputFileChangeEventArgs e)
@@ -252,9 +185,9 @@
         using var reader =
               new StreamReader(file.OpenReadStream(1024 * 1024 * 1024));
 
-        roast.RoastProfile = await reader.ReadToEndAsync();
-
-        StateHasChanged();
+        string roastProfile = await reader.ReadToEndAsync();
+        Dispatcher.Dispatch(new RoastsRoastProfileChangeAction(roastProfile));
+        Dispatcher.Dispatch(new RoastsUpdateFieldsAction(roastProfile));
     }
 
     private async void UploadPhoto(InputFileChangeEventArgs e)
@@ -263,33 +196,50 @@
         snackbar.Add($"Uploading {file.Name}.");
         var buffers = new byte[file.Size];
         await file.OpenReadStream().ReadAsync(buffers);
-        roast.Photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffers)}";
+        string photo = $"data:{file.ContentType};base64,{Convert.ToBase64String(buffers)}";
+        Dispatcher.Dispatch(new RoastsPhotoChangeAction(photo));
     }
 
-    private void Details(int id)
+    private void Details(Roast roast)
     {
-        uriHelper.NavigateTo($"roast/detail/{id}");
+        uriHelper.NavigateTo($"roast/detail/{roast.Id}");
     }
 
-    public void CurrentBeanSelection(List<GreenBlend> blends)
+    public void CurrentBeanSelection(GreenBlend[] blends)
     {
-        greenblends = blends;
-        roast.Beans.Clear();
-        foreach (var b in greenblends)
-        {
-            roast.Beans.Add(b);
-        }
+        Dispatcher.Dispatch(new RoastsSetGreenBlendAction(blends));
     }
 
-    private void ToggleShowInputDialog()
+    private void NameChanged(string text)
     {
-        if (edit && showInputDialog)
-        {
-            edit = false;
-            ResetRoast();
-            return;
-        }
-        showInputDialog = !showInputDialog;
+        Dispatcher.Dispatch(new RoastNameChangeAction(text));
     }
 
+    private void ShortInfoChanged(string text)
+    {
+        Dispatcher.Dispatch(new RoastShortInfoChangeAction(text));
+
+    }
+
+    private void EquipmentChanged(string text)
+    {
+        Dispatcher.Dispatch(new RoastEquipmentChangeAction(text));
+    }
+
+    private void NoteChanged(string text)
+    {
+        Dispatcher.Dispatch(new RoastNoteChangeAction(text));
+    }
+
+    private void DateChanged(string text)
+    {
+        DateTime d = string.IsNullOrEmpty(text) ? DateTime.MinValue : DateTime.Parse(text);
+        Dispatcher.Dispatch(new RoastsDateChangeAction(d));
+    }
+
+    private void TimeChanged(string text)
+    {
+        TimeSpan s = string.IsNullOrEmpty(text) ? TimeSpan.Zero : TimeSpan.Parse(text);
+        Dispatcher.Dispatch(new RoastsTimeChangeAction(s));
+    }
 }

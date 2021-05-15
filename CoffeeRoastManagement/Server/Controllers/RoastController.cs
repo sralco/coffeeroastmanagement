@@ -48,7 +48,31 @@ namespace CoffeeRoastManagement.Server.Controllers
         public void Put(Roast roast)
         {
             _logger.LogInformation("Update roast information: {roast}");
-            _context.Entry(roast).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
+            // get roast from database
+            var dbRoasts = _context.Roasts.Include(x => x.Beans).ThenInclude(x => x.StockItem); 
+            var dbRoast = dbRoasts.FirstOrDefault(x => x.Id == roast.Id);
+            //List<GreenBlend> blendsToRemove = new List<GreenBlend>();
+            // remove items, which are not yet needed anymore
+            foreach (var bl in dbRoast.Beans)
+            {
+                if (!roast.Beans.Select(x => x.Id).Contains(bl.Id))
+                {
+                    //blendsToRemove.Add(bl);
+                    var sbl = _context.GreenBlends.FirstOrDefault(x => x.Id == bl.Id);
+                    _context.GreenBlends.Remove(sbl);
+                }
+            }
+            _context.SaveChanges();
+
+            List<GreenBlend> blend = new List<GreenBlend>();
+            // add new items
+            foreach (var bl in roast.Beans)
+            {
+                var b = _context.GreenBlends.FirstOrDefault(x => x.Id == bl.Id);
+                blend.Add(b);
+            }
+            dbRoast.Beans = blend;
+            _context.Entry(dbRoast).State = Microsoft.EntityFrameworkCore.EntityState.Modified;
             _context.SaveChanges();
 
         }

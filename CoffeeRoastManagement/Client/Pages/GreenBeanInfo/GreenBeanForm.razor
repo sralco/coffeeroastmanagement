@@ -36,11 +36,14 @@
                     </MudItem>
                 </MudGrid>
             </MudCardContent>
+            @if (ShowCreateButton)
+            {
             <MudCardActions>
                 <MudButton ButtonType="ButtonType.Submit" Variant="Variant.Filled" Color="Color.Primary">@ButtonText</MudButton>
                 <!-- The reset should also reset the contact, i.e., create a new empty contact -->
                 <!-- <MudButton ButtonType="ButtonType.Reset" Variant="Variant.Filled" Color="Color.Secondary" Class="col-1">Reset</MudButton> -->
             </MudCardActions>
+            }
         </MudCard>
     </EditForm>
 </div>
@@ -49,4 +52,5 @@
     [Parameter] public GreenBeanInfo greenbeaninfo { get; set; }
     [Parameter] public string ButtonText { get; set; } = "Save";
     [Parameter] public EventCallback OnValidSubmit { get; set; }
+    [Parameter] public bool ShowCreateButton { get; set; } = true;
 }

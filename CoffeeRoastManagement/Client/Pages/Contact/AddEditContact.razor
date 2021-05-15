@@ -3,20 +3,25 @@
 @inject NavigationManager uriHelper
 @inject IJSRuntime js
 @inject MudBlazor.ISnackbar snackbar
+@inject IDispatcher Dispatcher
+@inject IState<ContactsState> ContactsState 
+
+@using CoffeeRoastManagement.Client.Store.State
+@using CoffeeRoastManagement.Client.Store.Features.EditContact.Actions 
+ 
+@inherits FluxorComponent
 
 <h3>Contacts Management</h3>
 
-<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ClickAddButton"></MudIconButton>
 @if (showInputDialog)
 {
     <ContactForm ButtonText="@ButtonAction" contact="contact" OnValidSubmit="@Save" />
 }
 
-<MudTable Elevation="25" Items="contacts" Filter="new Func<Contact, bool>(Search)" @bind-contact="contact">
+<MudTable Elevation="25" Items="contacts"> @* @bind-contact="contact"> *@
     <ToolBarContent>
         <MudText Typo="Typo.h6">Contacts</MudText>
-        @*<MudToolBarSpacer />
-        <MudTextField @bind-Value="searchString" Placeholder="Search for Contacts..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>*@
     </ToolBarContent>
     <HeaderContent>
         <MudTh>Name</MudTh>
@@ -28,106 +33,62 @@
         <MudTd DataLabel="Country">@context.Country</MudTd>
         <MudTd DataLabel="Note">@context.Note</MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
-            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Edit(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(()=>Delete(@context))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
         </MudTd>
     </RowTemplate>
 </MudTable>
 
 @code { 
-    private bool showInputDialog = false;
-    private string ButtonAction = "Create";
-    private string searchString = "";
-    private Contact contact = new Contact();
-    private List<Contact> contacts = new List<Contact>();
-    private List<byte[]> icons = new List<byte[]>();
-    private bool edit = false;
+    private bool showInputDialog => ContactsState.Value.ShowInputDialog;
+    private string ButtonAction => ContactsState.Value.ContactButtonText;
 
-    private void ToggleShowInputDialog()
+    private Contact contact => ContactsState.Value.CurrentContact;
+
+    private Contact[] contacts => ContactsState.Value.Contacts;
+    private bool loading => ContactsState.Value.Loading;
+
+    private bool edit => ContactsState.Value.ContactEditMode;
+
+    private void ClickAddButton()
     {
-        if (edit && showInputDialog)
+        Dispatcher.Dispatch(new ContactAddAction());
+    }
+
+    private void LoadContacts()
+    {
+        Dispatcher.Dispatch(new ContactsLoadAction());
+    }
+
+    protected override void OnInitialized()
+    {
+        SubscribeToAction<ContactDeleteSuccessAction>((action) => snackbar.Add("Contact deleted.", Severity.Success));
+        SubscribeToAction<ContactDeleteFailureAction>((action) => snackbar.Add($"Contact delete failed: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<ContactCreateSuccessAction>((action) => snackbar.Add("Contact created successfully.", Severity.Success));
+        SubscribeToAction<ContactCreateFailureAction>((action) => snackbar.Add($"Contact not created: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<ContactUpdateSuccessAction>((action) => snackbar.Add("Contact updated successfully.", Severity.Success));
+        SubscribeToAction<ContactUpdateFailureAction>((action) => snackbar.Add($"Contact update failed: {action.ErrorMessage}.", Severity.Error));
+
+        if (!ContactsState.Value.Initialized)
         {
-            contact = new Contact();
-            edit = false;
-            ButtonAction = "Create";
-            StateHasChanged();
-            return;
+            LoadContacts();
+            Dispatcher.Dispatch(new ContactsInitializedAction());
         }
-        showInputDialog = !showInputDialog;
-    }
-    private void ShowInputDialog()
-    {
-        showInputDialog = true;
+        base.OnInitialized();
     }
 
-    private List<Contact> AllContacts()
+    private void Save()
     {
-        return contacts;
+        Dispatcher.Dispatch(new ContactsSaveAction(contact));
     }
 
-    private async void GetContacts()
+    private void Edit(Contact cont)
     {
-        var c = await http.GetFromJsonAsync<Contact[]>("api/contact");
-        contacts.Clear();
-        contacts.AddRange(c);
-
-        StateHasChanged();
+        Dispatcher.Dispatch(new ContactEditAction(cont));
     }
 
-    protected override async Task OnInitializedAsync()
+    private void Delete(Contact cont)
     {
-        var c = await http.GetFromJsonAsync<Contact[]>("api/contact");
-        contacts = new List<Contact>();
-        contacts.AddRange(c);
-    }
-
-    private bool Search(Contact contact)
-    {
-        if (string.IsNullOrWhiteSpace(searchString)) return true;
-        if (contact.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-        return false;
-    }
-
-    private async void Save()
-    {
-        if (contact.Id == 0)
-        {
-            await http.PostAsJsonAsync("api/contact", contact);
-            snackbar.Add("Contact saved.", Severity.Success);
-        }
-        else
-        {
-            await http.PutAsJsonAsync("api/contact", contact);
-            snackbar.Add("Contact updated.", Severity.Success);
-
-        }
-        contact = new Contact();
-        showInputDialog = false;
-        edit = false;
-        ButtonAction = "Create";
-        GetContacts();
-        StateHasChanged();
-    }
-
-    private async void Edit(int id)
-    {
-        ShowInputDialog();
-        ButtonAction = "Update";
-        edit = true;
-        contact = await http.GetFromJsonAsync<Contact>($"api/contact/{id}");
-        StateHasChanged();
-    }
-
-    private async void Delete(int id)
-    {
-        showInputDialog = false;
-        edit = false;
-        contact = new Contact();
-        await http.DeleteAsync($"api/contact/{id}");
-        snackbar.Add("Contact deleted.", Severity.Success);
-        GetContacts();
+        Dispatcher.Dispatch(new ContactsDeleteAction(cont));
     }
 }

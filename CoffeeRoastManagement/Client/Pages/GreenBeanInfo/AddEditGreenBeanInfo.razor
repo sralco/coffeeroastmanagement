@@ -3,21 +3,27 @@
 @inject NavigationManager uriHelper
 @inject IJSRuntime js
 @inject MudBlazor.ISnackbar snackbar
+@inject IDispatcher Dispatcher
+@inject IState<GreenBeansState> GreenBeansState
+
+@using CoffeeRoastManagement.Client.Store.State
+@using CoffeeRoastManagement.Client.Store.Features.EditGreenBean.Actions
+
+@inherits FluxorComponent
 
 <h3>Green Bean Management</h3>
 
-<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ToggleShowInputDialog"></MudIconButton>
+<MudIconButton Icon="@Icons.Material.Filled.Add" Color="Color.Primary" OnClick="@ClickAddButton"></MudIconButton>
 @if (showInputDialog)
 {
     <GreenBeanForm ButtonText="@ButtonAction" greenbeaninfo="greenbeaninfo" OnValidSubmit="@Save" />
 }
 
 
-<MudTable Elevation="25" Items="greenbeaninfos" Filter="new Func<GreenBeanInfo, bool>(Search)" @bind-contact="greenbeaninfo">
+<MudTable Elevation="25" Items="greenbeaninfos"> @*@bind-contact="greenbeaninfo">*@
     <ToolBarContent>
         <MudText Typo="Typo.h6">Green Beans</MudText>
         <MudToolBarSpacer />
-        <MudTextField @bind-Value="searchString" Placeholder="Search for Contacts..." Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
     </ToolBarContent>
     <HeaderContent>
         <MudTh>Name</MudTh>
@@ -34,98 +40,64 @@
         <MudTd DataLabel="Farmer">@context.Farmer</MudTd>
         <MudTd DataLabel="Note">@context.Note</MudTd>
         <MudTd DataLabel="">
-            <MudFab @onclick="@(()=>Edit(@context.Id))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
-            <MudFab @onclick="@(()=>Delete(@context.Id))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Edit(@context))" Color="Color.Primary" Icon="@Icons.Material.Filled.Edit" Size="Size.Small" IconSize="Size.Small" />
+            <MudFab @onclick="@(() => Delete(@context))" Color="Color.Secondary" Icon="@Icons.Material.Filled.Delete" Size="Size.Small" IconSize="Size.Small" />
         </MudTd>
     </RowTemplate>
 </MudTable>
 
 
-@code {
-    private bool showInputDialog = false;
-    private string ButtonAction = "Create";
-    private string searchString = "";
-    private GreenBeanInfo greenbeaninfo = new GreenBeanInfo();
-    private List<GreenBeanInfo> greenbeaninfos = new List<GreenBeanInfo>();
-    private bool edit = false;
+@code { 
 
-    private void ToggleShowInputDialog()
+    private bool showInputDialog => GreenBeansState.Value.ShowInputDialog;
+    private string ButtonAction => GreenBeansState.Value.GreenBeanButtonText;
+
+    private GreenBeanInfo greenbeaninfo => GreenBeansState.Value.CurrentGreenBean;
+
+    private GreenBeanInfo[] greenbeaninfos => GreenBeansState.Value.GreenBeans;
+    private bool loading => GreenBeansState.Value.Loading;
+
+    private bool edit => GreenBeansState.Value.GreenBeanEditMode;
+
+    private void ClickAddButton()
     {
-        if (edit && showInputDialog)
-        {
-            greenbeaninfo = new GreenBeanInfo();
-            edit = false;
-            ButtonAction = "Create";
-            StateHasChanged();
-            return;
-        }
-        showInputDialog = !showInputDialog;
+        Dispatcher.Dispatch(new GreenBeanAddAction());
     }
 
-    private void ShowInputDialog()
+    private void LoadGreenBeans()
     {
-        showInputDialog = true;
+        Dispatcher.Dispatch(new GreenBeansLoadAction());
     }
 
     protected override async Task OnInitializedAsync()
     {
-        var c = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
-        greenbeaninfos.Clear();
-        greenbeaninfos.AddRange(c);
-    }
+        SubscribeToAction<GreenBeansDeleteSuccessAction>((action) => snackbar.Add("Green bean deleted.", Severity.Success));
+        SubscribeToAction<GreenBeansDeleteFailureAction>((action) => snackbar.Add($"Green been delete failed: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<GreenBeanCreateSuccessAction>((action) => snackbar.Add("Green bean created successfully.", Severity.Success));
+        SubscribeToAction<GreenBeanCreateFailureAction>((action) => snackbar.Add($"Green bean not created: {action.ErrorMessage}.", Severity.Error));
+        SubscribeToAction<GreenBeanUpdateSuccessAction>((action) => snackbar.Add("Green bean updated successfully.", Severity.Success));
+        SubscribeToAction<GreenBeanUpdateFailureAction>((action) => snackbar.Add($"Green bean update failed: {action.ErrorMessage}.", Severity.Error));
 
-    private bool Search(GreenBeanInfo greenbeaninfo)
-    {
-        if (string.IsNullOrWhiteSpace(searchString)) return true;
-        if (greenbeaninfo.Name.Contains(searchString, StringComparison.OrdinalIgnoreCase))
+        if (!GreenBeansState.Value.Initialized)
         {
-            return true;
+            LoadGreenBeans();
+            Dispatcher.Dispatch(new GreenBeansInitializedAction());
         }
-        return false;
+        await base.OnInitializedAsync();
     }
 
-    private async void Save()
+    private void Save()
     {
-        if (greenbeaninfo.Id == 0)
-        {
-            await http.PostAsJsonAsync("api/greenbeaninfo", greenbeaninfo);
-            snackbar.Add("Green bean information saved.", Severity.Success);
-        }
-        else
-        {
-            await http.PutAsJsonAsync("api/greenbeaninfo", greenbeaninfo);
-            snackbar.Add("Green bean information updated.", Severity.Success);
-
-        }
-        var c = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
-        greenbeaninfo = new GreenBeanInfo();
-        showInputDialog = false;
-        edit = false;
-        ButtonAction = "Create";
-        greenbeaninfos.Clear();
-        greenbeaninfos.AddRange(c);
-        StateHasChanged();
+        Dispatcher.Dispatch(new GreenBeansSaveAction(greenbeaninfo));
     }
 
-    private async void Edit(int id)
+    private void Edit(GreenBeanInfo gbi)
     {
-        ButtonAction = "Update";
-        edit = true;
-        ShowInputDialog();
-        greenbeaninfo = await http.GetFromJsonAsync<GreenBeanInfo>($"api/greenbeaninfo/{id}");
-        StateHasChanged();
+        Dispatcher.Dispatch(new GreenBeanEditAction(gbi));
     }
 
-    private async void Delete(int id)
+    private void Delete(GreenBeanInfo gbi)
     {
-        showInputDialog = false;
-        edit = false;
-        greenbeaninfo = new GreenBeanInfo();
-        await http.DeleteAsync($"api/greenbeaninfo/{id}");
-        snackbar.Add("Green bean information deleted.", Severity.Success);
-        var c = await http.GetFromJsonAsync<GreenBeanInfo[]>("api/greenbeaninfo");
-        greenbeaninfos.Clear();
-        greenbeaninfos.AddRange(c);
-        StateHasChanged();
+        Dispatcher.Dispatch(new GreenBeansDeleteAction(gbi));
     }
 }

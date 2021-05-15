@@ -54,29 +54,29 @@
 @code {
     private string searchString = "";
     private GreenBlend greenblend = new GreenBlend();
-    private List<GreenBlend> greenblends = new List<GreenBlend>();
+    private GreenBlend[] greenblends = Array.Empty<GreenBlend>();
     private int? stockId { get; set; }
 
     private Stock stock = new Stock();
-    private List<Stock> stocks = new List<Stock>();
+    private Stock[] stocks = Array.Empty<Stock>();
 
     private async void GetGreenBlends()
     {
         var c = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
-        greenblends.Clear();
-        greenblends.AddRange(c);
-        StateHasChanged();
+        //greenblends.Clear();
+        //greenblends.AddRange(c);
+        //StateHasChanged();
     }
 
     protected override async Task OnInitializedAsync()
     {
         var c = await http.GetFromJsonAsync<GreenBlend[]>("api/greenblend");
-        greenblends.Clear();
-        greenblends.AddRange(c);
+        //greenblends.Clear();
+        //greenblends.AddRange(c);
 
-        var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
-        stocks.Clear();
-        stocks.AddRange(s);
+        //var s = await http.GetFromJsonAsync<Stock[]>("api/stock");
+        //stocks.Clear();
+        //stocks.AddRange(s);
     }
 
     private bool Search(GreenBlend greenblend)
@@ -113,9 +113,9 @@
         GetGreenBlends();
     }
 
-    public void CurrentBeanSelection(List<GreenBlend> blends)
+    public void CurrentBeanSelection(GreenBlend[] blends)
     {
-        greenblends = blends;
+        //greenblends = blends;
         Console.WriteLine("AddEditGreenBlend.CurrentBeanSelection");
     }
 }

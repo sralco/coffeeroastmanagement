@@ -1,8 +1,0 @@
-﻿<MudExpansionPanel Text="@contact.Name">
-    <MudLink Href="@contact.Url" Underline="Underline.Always">@contact.Name</MudLink>
-    @contact.Note
-</MudExpansionPanel>
-
-@code {
-    [Parameter] public Contact contact { get; set; }
-}
