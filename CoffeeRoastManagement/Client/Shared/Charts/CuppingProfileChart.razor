@@ -1,0 +1,46 @@
+﻿@inject IJSRuntime JSRuntime
+
+<canvas id="@Id"></canvas>
+
+@code {
+    public enum ChartType
+    {
+        Radar
+    }
+
+    [Parameter] public string Id { get; set; }
+    [Parameter] public ArtisanFile Artisan { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        List<string> labels = Artisan.FlavorLabels;
+        var config = new
+        {
+            Type = ChartType.Radar.ToString().ToLower(),
+            Options = new
+            {
+                Responsive = true,
+                Plugins = new
+                {
+                    Display = true,
+                    Title = "Flavor profile"
+                },
+            },
+            Data = new
+            {
+                Datasets = new[]
+                {
+                    new {
+                        Data = Artisan.Flavors.ToArray(),
+                        BorderColor = "blue",
+                        BackgroundColor = "rgba(0,0,200,0.1)",
+                        Label = "Flavor profile"
+                    }
+                },
+                Labels = labels,
+            }
+        };
+
+        await JSRuntime.InvokeVoidAsync("chartwrapper", Id, config);
+    }
+}

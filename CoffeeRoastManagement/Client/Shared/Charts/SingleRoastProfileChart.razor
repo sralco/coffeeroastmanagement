@@ -1,0 +1,69 @@
+﻿@inject IJSRuntime JSRuntime
+
+<canvas id="@Id"></canvas>
+
+@code {
+    public enum ChartType
+    {
+        Line
+    }
+
+    [Parameter] public string Id { get; set; }
+    [Parameter] public ArtisanFile Artisan { get; set; }
+
+    private string FormatAsMinuteSecond(int value)
+    {
+        var min = value / 60;
+        var sec = value % 60;
+        return $"{min.ToString("D2")}:{sec.ToString("D2")}";
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        List<string> labels = new List<string>();
+        Artisan.TimeX.ForEach(x => labels.Add(FormatAsMinuteSecond((int)Math.Round(x))));
+        var config = new
+        {
+            Type = ChartType.Line.ToString().ToLower(),
+            Options = new
+            {
+                Responsive = true,
+                Scales = new
+                {
+                    YAxes = new[]
+                {
+                            new { Ticks = new { BeginAtZero=true }}
+                    }
+                },
+                Title = "Artisan roast profile"
+            },
+            Data = new
+            {
+                Datasets = new[]
+                {
+                    new {
+                        Data = Artisan.Temp1.ToArray(),
+                        Label = "Environment temp.",
+                        Stepped = false,
+                        BackgroundColor = "red"
+                    },
+                    new {
+                        Data = Artisan.Temp2.ToArray(),
+                        Label = "Bean temp.",
+                        Stepped = false,
+                        BackgroundColor = "blue"
+                    },
+                    new {
+                        Data = Artisan.ExtraTemp1[0].ToArray(),
+                        Label = "Power",
+                        Stepped = true,
+                        BackgroundColor = "grey"
+                    }
+                },
+                Labels = labels,
+            }
+        };
+
+        await JSRuntime.InvokeVoidAsync("chartwrapper", Id, config);
+    }
+}

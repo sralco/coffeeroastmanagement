@@ -261,5 +261,14 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditRoast.Reducers
                 ShowInputDialog = true,
             };
         }
+
+        [ReducerMethod]
+        public static RoastsState OnSetCurrentRoast(RoastsState state, RoastsSetCurrentRoastAction action)
+        {
+            return state with
+            {
+                CurrentRoast = state.Roasts.FirstOrDefault(x => x.Id == action.RoastId)
+            };
+        }
     }
 }

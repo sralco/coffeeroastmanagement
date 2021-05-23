@@ -193,4 +193,14 @@ namespace CoffeeRoastManagement.Client.Store.Features.EditRoast.Actions
         }
     }
 
+    public class RoastsSetCurrentRoastAction
+    {
+        public int RoastId { get; }
+        public RoastsSetCurrentRoastAction(int roastId)
+        {
+            RoastId = roastId;
+        }
+
+    }
+
 }
