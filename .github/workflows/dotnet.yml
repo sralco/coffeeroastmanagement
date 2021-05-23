@@ -1,0 +1,14 @@
+name: dotnet build
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Get the sources
+        uses: actions/checkout@v1
+      - name: Run Cake build script
+        uses: cake-build/cake-action@v1
+        with:
+          target: Build
