@@ -35,11 +35,12 @@ namespace CoffeeRoastManagement.Server
             if (!String.IsNullOrEmpty(Configuration["CONNECTION_STRING"]))
             {
                 services.AddDbContext<RoastDbContext>(options =>
-                    options.UseNpgsql(Configuration["CONNECTION_STRING"]));
-            }else if (!String.IsNullOrEmpty(Configuration.GetConnectionString("CoffeeRoastDatabase")))
+                      options.UseSqlServer(Configuration.GetConnectionString("CoffeeRoastDatabase")), ServiceLifetime.Transient);
+            }
+            else if (!String.IsNullOrEmpty(Configuration.GetConnectionString("CoffeeRoastDatabase")))
             {
                 services.AddDbContext<RoastDbContext>(options =>
-                    options.UseNpgsql(Configuration.GetConnectionString("CoffeeRoastDatabase")));
+                     options.UseSqlServer(Configuration.GetConnectionString("CoffeeRoastDatabase")), ServiceLifetime.Transient);
             }
             else
             {
